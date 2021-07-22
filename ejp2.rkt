@@ -19,7 +19,7 @@
               [(equal? i sub-id) value]
               [else expr])]
     [(num n) expr]
-    [(op f lst) (op f (append (map (lambda(x) subst x sub-id value) (filter ids? lst)) (filter nids? lst)))]))
+    [(op f lst) (op f (map (lambda (x) (subst x sub-id value)) lst))]))
 
 
 (define (ids? e)
