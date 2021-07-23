@@ -1,4 +1,5 @@
 #lang plai
+
 (require (file "./grammars.rkt"))
 
 ;; Toma una lista de números, symbolos o listas
@@ -8,5 +9,5 @@
 ;;    | listof(A)
 ;; parse: A -> SCFWBAE
 ;; parse: s-expression -> SCFWBAE
-;(define (parse sexp)
-;  ...) 
+(define (parse sexp)
+  ...)

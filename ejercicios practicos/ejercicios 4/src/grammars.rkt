@@ -1,4 +1,5 @@
 #lang plai
+
 ;; Data-type que representa un caché de sustituciones
 (define-type DefrdSub
   [mtSub]

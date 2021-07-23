@@ -20,7 +20,7 @@
 (define (interp expr ds)
     (operate (subst expr ds)))
 
-;; Realiza la sustitución de las variables alamceadas en el ambiente
+;; Realiza la sustitución de las variables almacenadas en el ambiente
 ;; subst :: WAE DefrdSub --> WAE
 (define (subst expr ds)
     (match expr
