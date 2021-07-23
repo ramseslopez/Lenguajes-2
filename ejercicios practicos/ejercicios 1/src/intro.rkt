@@ -1,12 +1,12 @@
 #lang plai
 
-;; Ejercicios prácticos 1 
+;; Ejercicios prácticos 1
 ;; @author Ramses López
 ;; @date June 2021
 
 
 ;; Ejercicio 1
-;; Procedimiento que eleva un número n a la potencia m 
+;; Procedimiento que eleva un número n a la potencia m
 ;; potencia :: number number --> number
 (define (potencia n m)
   (cond
@@ -77,7 +77,7 @@
 ;; Ejercicio 8
 ;; Predicado que verifica si una lista es palíndroma
 ;; palindromo-lista? :: (listof any) --> boolean
-(define (palindromo-lista? lst)
+(define (palindromo? lst)
   (cond
     [(empty? lst) #t]
     [else (equal? lst (reversa-lista lst))]))
@@ -96,7 +96,7 @@
 (define (divisores n)
   (reversa-lista (concatena (list n) (div n (sub1 n)))))
 
-
+;; Definición del tipo Punto
 (define-type Punto
   [punto (x number?) (y number?)])
 
@@ -121,19 +121,19 @@
 ;; Ejercicio 13
 ;; Tipos para figuras geométricas
 
-;; Círculo
+;; Definición del tipo Círculo
 (define-type Circulo
   [circulo (centro Punto?) (radio positive-integer?)])
 
-;; Triángulo
+;; Definición del tipo Triángulo
 (define-type Triangulo
   [triangulo (punto1 Punto?) (punto2 Punto?) (punto3 Punto?)])
 
-;; Cuadrado
+;; Definición del tipo Cuadrado
 (define-type Cuadrado
   [cuadrado (pizq Punto?) (longitud positive-integer?)])
 
-;; Rectángulo
+;; Definición del tipo Rectángulo
 (define-type Rectangulo
   [rectangulo (pizq Punto?) (base positive-integer?) (altura positive-integer?)])
 
@@ -160,11 +160,11 @@
 ;; denominaciones $50, $20, $10, $5, $2, $1
 ;; cambio :: number number --> (listof number)
 (define (cambio total pago)
-  (let ([lst (list 50 20 10 5 2 1)]) 
+  (let ([lst (list 50 20 10 5 2 1)])
   (cond
     [(equal? total pago) (list 0 0 0 0 0 0)]
     [else (denominaciones (- pago total) lst)])))
-    
+
 
 ;; Ejercicio 17
 ;; Procedimiento que calcula la descomposición en factores primos de un número
@@ -189,7 +189,7 @@
                         [(< x r) (nodo r (agrega x izq) der)]
                         [(> x r) (nodo r izq (agrega x der))]
                         [else (error "El elemento ya está contenido en el árbol")])]))
- 
+
 ;; Ejercicio 20
 ;; Procedimeinto que verifica si un elemento está contenido en el árbol
 ;; contiene :: ABB number --> boolean
