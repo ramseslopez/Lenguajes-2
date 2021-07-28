@@ -54,4 +54,3 @@
   [charV    (c char?)]
   [stringV  (s string?)]
   [listV    (l (listof CFWBAE-Value?))])
-

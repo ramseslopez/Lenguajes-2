@@ -44,7 +44,7 @@
                             [/ (num (apply / (map num-n zs)))]
                             [sub1 (cond
                                         [(equal? (length zs) 1) (num (sub1 (first zs)))]
-                                        [else (num 1)])]
+                                        [else "La cardinalidad de la lista es mayor a 1"])]
                             [add1 (cond
                                         [(equal? (length zs) 1) (num (add1 (first zs)))]
                                         [else "La cardinalidad de la lista es mayor a 1"])]

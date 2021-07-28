@@ -1,9 +1,10 @@
 #lang plai
+
 (require (file "./grammars.rkt"))
 (require (file "./parser.rkt"))
 (require (file "./desugar.rkt"))
 
-;; Busca el identificador "name" en el caché de 
+;; Busca el identificador "name" en el caché de
 ;; sustitución "ds" regresando el valor correspondiente
 ;; o informando un error si no lo encuentra.
 ;; lookup: symbol DefrdSub -> CFWBAE
