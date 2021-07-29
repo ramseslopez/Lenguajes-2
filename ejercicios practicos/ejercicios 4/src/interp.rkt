@@ -74,18 +74,17 @@
         [(num n) expr]
         [(op f lst) (op f (map (lambda (x) (subst-aux x sub-id value)) lst))]))
 
-#|(define (sub-bind lst)
+(define (sub-bind lst)
     (match lst
         ['() lst]
         [(cons x xs) (cond
-                                [(pertenece? (second (bind-conv x)) (snds xs)) (subst-aux (second (bind-conv x)) () (first ()))]
-                                [else (sub-bind xs)])]))|#
+                                [(pertenece? (second (bind-conv x)) (snds xs)) (subst-aux (second (bind-conv x)) (second (bind-conv x)) (second (out second (bind-conv x) lst)))]
+                                [else (sub-bind xs)])]))
 
 ;; Predicado que verifica si un elemnto se encuentra en una lista
 ;; pertenece? :: any (listof any) --> boolean
 (define (pertenece? e lst)
   (cond
-    ;;[(null? e) (error "No hay elemento por buscar")]
     [(equal? (length lst) 0) #f]
     [(equal? e (car lst)) #t]
     [else (pertenece? e (cdr lst))]))
@@ -99,5 +98,8 @@
     (match lst
         ['() lst]
         [(cons (binding a b) xs) (cond
-                                                [(equal? sym a) (a b)]
+                                                [(equal? sym a) (list a b)]
                                                 [else (out sym xs)])]))
+
+
+(sub-bind (list (binding 't (num 5)) (binding 'y (id 'u)) (binding 'u (num 8))))
