@@ -1,4 +1,5 @@
 #lang plai
+
 ;; Definición del tipo Binding
 (define-type Binding
   [binding (id symbol?) (value SCFWBAE?)])

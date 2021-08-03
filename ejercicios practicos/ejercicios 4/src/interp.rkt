@@ -78,7 +78,7 @@
     (match lst
         ['() lst]
         [(cons x xs) (cond
-                                [(pertenece? (second (bind-conv x)) (snds xs)) (subst-aux (second (bind-conv x)) (second (bind-conv x)) (second (out second (bind-conv x) lst)))]
+                                [(pertenece? (second (bind-conv x)) (snds xs)) ()]
                                 [else (sub-bind xs)])]))
 
 ;; Predicado que verifica si un elemnto se encuentra en una lista
