@@ -20,7 +20,7 @@
 ;; Toma un árbol de sintáxis abstraca del lenguaje CFWAE, un caché de
 ;; sustituciones y lo interpreta dependiendo de las definiciones dentro del caché,
 ;; devolviendo el valor numérico correspondiente.
-;; interp: CFWBAE DefrdSub-> CFWBAE-Value
+;; interp :: CFWBAE DefrdSub --> CFWBAE-Value
 (define (interp expr ds)
     (operate (subst expr ds)))
 
