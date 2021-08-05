@@ -7,7 +7,7 @@
 ;; Busca el identificador "name" en el caché de
 ;; sustitución "ds" regresando el valor correspondiente
 ;; o informando un error si no lo encuentra.
-;; lookup: symbol DefrdSub -> CFWBAE
+;; lookup :: symbol DefrdSub --> CFWBAE
 ;; (define (lookup name ds)
 (define (lookup name ds)
     (match ds

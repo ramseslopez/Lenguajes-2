@@ -19,9 +19,7 @@
         [(iFS c t e) (iF (desugar c) (desugar t) (desugar e))]
         [(iF0 n t e) (iF (op zero? (list (desugar n))) (desugar t) (desugar e))]
         [(opS f args) (op f (map (lambda (x) (desugar x)) args))]
-        [(condS lst) (cond
-                                [(equal? (length lst) 3) (iF (desugar (first lst)) (desugar (second lst)) (desugar (third lst)))]
-                                [else (iF (desugar (first lst)) (desugar (second lst)) (map (lambda (x) (desugar x)) (list-tail lst 2)))])]
+        #|[(condS lst) ()]|#
         [(withS lst body) (app (fun (fsts lst) (desugar body)) (map (lambda (x) (desugar x)) (snds lst)))]
         #|[(withS* lst body) ()]|#
         [(funS lst body) (fun lst (desugar body))]
@@ -45,13 +43,6 @@
 ;; deswith :: SCFWBAE --> SCFWBAE
 (define (des-with sexpr)
     (match sexpr
-        [(withS* xs body) (cond
-                                          [(equal? (length xs) 1) (withS xs body)]
-                                          [else (cons (withS (car xs) (des-with (cdr xs) body)))])]))
-
-;; ifs :: SCFWBAE --> CFWBAE
-(define (ifs sexpr)
-    (match sexpr
-        [(condS lst) (cond
-                              [(equal? (length lst) 3) (iF (desugar (first lst)) (desugar (second lst)) (desugar (third lst)))]
-                              [else (iF (desugar (first lst)) (desugar (second lst)) (ifs (list-tail lst 2)))])]))
+        [(withS* lst body) (match lst
+                                            ['() lst]
+                                            [(cons x xs) (withS x (des-with xs body))])]))
