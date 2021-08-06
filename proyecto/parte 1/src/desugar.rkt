@@ -41,8 +41,8 @@
         [(cons (binding a b) ys) (cons b (snds ys))]))
 
 ;; deswith :: SCFWBAE --> SCFWBAE
-(define (des-with sexpr)
+(define (deswith sexpr)
     (match sexpr
-        [(withS* lst body) (match lst
-                                            ['() lst]
-                                            [(cons x xs) (withS x (des-with xs body))])]))
+        [(withS* ys body) (cond
+                                          [(equal? (length ys) 1) (withS ys body)]
+                                          [else (withS (car ys) (deswith (withS (cdr ys) body)))])]))

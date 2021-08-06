@@ -36,25 +36,25 @@
 ;; operate :: CFWBAE --> CFWBAE-Value
 (define (operate xs)
     (match xs
-      [(id i) xs]
-      [(num n) (numV n)]
-      [(op g zs) (match g
-                          #|[+ (numV (apply + (map num-n (map desnum zs))))]
-                          [- (numV (apply - (map num-n (map desnum zs))))]
-                          [* (numV (apply * (map num-n (map desnum zs))))]
-                          [/ (numV (apply / (map num-n (map desnum zs))))]|#
-                          [sub1 (cond
-                                      [(equal? (length zs) 1) (numV (sub1 (first zs)))]
-                                      [else "La cardinalidad de la lista es mayor a 1"])]
-                          [add1 (cond
-                                      [(equal? (length zs) 1) (numV (add1 (first zs)))]
-                                      [else "La cardinalidad de la lista es mayor a 1"])]
-                          [modulo (cond
-                                          [(equal? (length zs) 2) (numV (modulo (first zs) (last zs)))]
-                                          [else (error "La cardinalidad de la lista es mayor a 2")])]
-                          [expt (cond
-                                          [(equal? (length zs) 2) (numV (expt (first zs) (last zs)))]
-                                          [else (error "La cardinalidad de la lista es mayor a 2")])])]))
+        [(id i) xs]
+        [(num n) (numV n)]
+        [(op g zs) (match g
+                            #|[+ (numV (apply + (map num-n (map desnum zs))))]
+                            [- (numV (apply - (map num-n (map desnum zs))))]
+                            [* (numV (apply * (map num-n (map desnum zs))))]
+                            [/ (numV (apply / (map num-n (map desnum zs))))]|#
+                            [sub1 (cond
+                                        [(equal? (length zs) 1) (numV (sub1 (first zs)))]
+                                        [else "La cardinalidad de la lista es mayor a 1"])]
+                            [add1 (cond
+                                        [(equal? (length zs) 1) (numV (add1 (first zs)))]
+                                        [else "La cardinalidad de la lista es mayor a 1"])]
+                            [modulo (cond
+                                            [(equal? (length zs) 2) (numV (modulo (first zs) (last zs)))]
+                                            [else (error "La cardinalidad de la lista es mayor a 2")])]
+                            [expt (cond
+                                            [(equal? (length zs) 2) (numV (expt (first zs) (last zs)))]
+                                            [else (error "La cardinalidad de la lista es mayor a 2")])])]))
 
 (define (desnum numn)
     (match numn

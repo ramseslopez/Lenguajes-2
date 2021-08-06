@@ -16,5 +16,4 @@
         [(boolean? sexp) (boolS sexp)]
         [(char? sexp) (charS sexp)]
         [(string? sexp) (stringS sexp)]
-        [(list? sexp) (listS (map (lambda (x) (parse x)) sexp))]
-        ))
+        [(list? sexp) (listS (map (lambda (x) (parse x)) sexp))]))
