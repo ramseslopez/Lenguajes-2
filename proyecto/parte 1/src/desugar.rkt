@@ -1,7 +1,7 @@
 #lang plai
 
 (require (file "./grammars.rkt"))
-;(require (file "./parser.rkt"))
+(require (file "./parser.rkt"))
 
 ;; Función que toma una expresión con azúcar sintáctica
 ;; SCFWBAE y elimina el azúcar sintáctica, tansformándola

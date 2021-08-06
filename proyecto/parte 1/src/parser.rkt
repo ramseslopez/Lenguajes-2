@@ -7,8 +7,14 @@
 ;; A ::=  <number>
 ;;        | <symbol>
 ;;        | listof(A)
-;; parse :: A --> SCFWBAE
-;; parse :: s-expression --> SCFWBAE
+;; parse :: A --> CFWBAE
+;; parse :: s-expression --> CFWBAE
 (define (parse sexp)
-    (match sexp
-        []))
+    (cond
+        [(symbol? sexp) (idS sexp)]
+        [(number? sexp) (numS sexp)]
+        [(boolean? sexp) (boolS sexp)]
+        [(char? sexp) (charS sexp)]
+        [(string? sexp) (stringS sexp)]
+        [(list? sexp) (listS (map (lambda (x) (parse x)) sexp))]
+        ))

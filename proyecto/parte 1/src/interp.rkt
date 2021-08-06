@@ -1,8 +1,8 @@
 #lang plai
 
 (require (file "./grammars.rkt"))
-;(require (file "./parser.rkt"))
-;(require (file "./desugar.rkt"))
+(require (file "./parser.rkt"))
+(require (file "./desugar.rkt"))
 
 ;; Busca el identificador "name" en el caché de
 ;; sustitución "ds" regresando el valor correspondiente
@@ -37,12 +37,12 @@
 (define (operate xs)
     (match xs
       [(id i) xs]
-      [(num n) xs]
+      [(num n) (numV n)]
       [(op g zs) (match g
-                          [+ (numV (apply + (map num-n (map desnum zs))))]
+                          #|[+ (numV (apply + (map num-n (map desnum zs))))]
                           [- (numV (apply - (map num-n (map desnum zs))))]
                           [* (numV (apply * (map num-n (map desnum zs))))]
-                          [/ (numV (apply / (map num-n (map desnum zs))))]
+                          [/ (numV (apply / (map num-n (map desnum zs))))]|#
                           [sub1 (cond
                                       [(equal? (length zs) 1) (numV (sub1 (first zs)))]
                                       [else "La cardinalidad de la lista es mayor a 1"])]
