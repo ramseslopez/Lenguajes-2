@@ -1,7 +1,7 @@
 #lang plai
 
 (require (file "./grammars.rkt"))
-;(require (file "./parser.rkt"))
+(require (file "./parser.rkt"))
 
 ;; Busca el identificador "name" en el caché de
 ;; sustitución "ds" regresando el valor correspondiente
@@ -44,18 +44,10 @@
                               [- (num (apply - (map num-n zs)))]
                               [* (num (apply * (map num-n zs)))]
                               [/ (num (apply / (map num-n zs)))]
-                              [sub1 (cond
-                                          [(equal? (length zs) 1) (num (sub1 (first zs)))]
-                                          [else "La longitud de la lista es mayor a 1"])]
-                              [add1 (cond
-                                          [(equal? (length zs) 1) (num (add1 (first zs)))]
-                                          [else "La longitud de la lista es mayor a 1"])]
-                              [modulo (cond
-                                              [(equal? (length zs) 2) (num (modulo (first zs) (last zs)))]
-                                              [else (error "La longitud de la lista es mayor a 2")])]
-                              [expt (cond
-                                              [(equal? (length zs) 2) (num (expt (first zs) (last zs)))]
-                                              [else (error "La longitud de la lista es mayor a 2")])])]))
+                              [sub1 (num (sub1 (first zs)))]
+                              [add1 (num (add1 (first zs)))]
+                              [modulo (num (modulo (first zs) (last zs)))]
+                              [expt (num (expt (first zs) (last zs)))])]))
 
 
 (define (bind-conv x)
@@ -74,12 +66,12 @@
         [(num n) expr]
         [(op f lst) (op f (map (lambda (x) (subst-aux x sub-id value)) lst))]))
 
-(define (sub-bind lst)
+#|(define (sub-bind lst)
     (match lst
         ['() lst]
         [(cons x xs) (cond
                                 [(pertenece? (second (bind-conv x)) (snds xs)) ()]
-                                [else (sub-bind xs)])]))
+                                [else (sub-bind xs)])]))|#
 
 ;; Predicado que verifica si un elemnto se encuentra en una lista
 ;; pertenece? :: any (listof any) --> boolean
@@ -102,4 +94,4 @@
                                                 [else (out sym xs)])]))
 
 
-(sub-bind (list (binding 't (num 5)) (binding 'y (id 'u)) (binding 'u (num 8))))
+;(sub-bind (list (binding 't (num 5)) (binding 'y (id 'u)) (binding 'u (num 8))))
