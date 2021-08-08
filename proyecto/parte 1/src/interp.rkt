@@ -60,3 +60,9 @@
     (match numn
         [(num n) numn]
         [(numV m) (num m)]))
+
+(define (oR p q)
+    (or p q))
+
+(define (anD p q)
+    (and p q))
