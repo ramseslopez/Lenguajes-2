@@ -46,3 +46,19 @@
         [(withS* ys body) (cond
                                           [(equal? (length ys) 1) (withS ys body)]
                                           [else (withS (car ys) (deswith (withS (cdr ys) body)))])]))
+
+
+(define (ifs xs)
+    (match xs
+        ['() '()]
+        [(cons x xs) (cond
+                              [(equal? (length xs) 1) (iF (desugar (first (if1 (first x)))) (desugar (second (if1 (first x)))) (desugar (first (if2 (first xs)))))]
+                              [else (iF (desugar (first (if1 (first x)))) (desugar (second (if1 (first x)))) (ifs xs))])]))
+
+(define (if1 cnd)
+    (match cnd
+        [(condition a b) (list a b)]))
+
+(define (if2 cnd)
+    (match cnd
+        [(else-cond a) (list a)]))

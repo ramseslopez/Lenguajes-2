@@ -246,10 +246,10 @@
 ;; cnds :: s-expression --> SCFWBAE
 (define (cnds sexp)
     (case (car sexp)
-        [(cond) (condS (append (map (lambda (x) (condition (parse (first x)) (parse (second x)))) (no-last (cdr sexp)))   (list (else-cond (parse (second (last sexp)))))    )     )]))
+        [(cond) (condS (append (map (lambda (x) (condition (parse (first x)) (parse (second x)))) (no-last (cdr sexp))) (list (else-cond (parse (second (last sexp)))))))]))
 
 ;; Elimina el último elemento de una lista
-;; no-last :: s-expression --> s-expression 
+;; no-last :: s-expression --> s-expression
 (define (no-last sexp)
     (reverse (cdr (reverse sexp))))
 
