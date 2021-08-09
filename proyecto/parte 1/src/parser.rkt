@@ -24,6 +24,7 @@
     (case (car sexp)
                   [(if) (parse-if sexp)]
                   [(if0) (parse-if sexp)]
+                  [(cond) (parse-if sexp)]
                   [(add1) (parse-num sexp)]
                   [(sub1) (parse-num sexp)]
                   [(modulo) (parse-num sexp)]
@@ -31,17 +32,17 @@
                   [(or) (parse-bool sexp)]
                   [(and) (parse-bool sexp)]
                   ((not) (parse-bool sexp))
-                  [(<) (parse-bool sexp)]
-                  [(<=) (parse-bool sexp)]
-                  [(>=) (parse-bool sexp)]
-                  [(>) (parse-bool sexp)]
-                  [(zero?) (parse-bool sexp)]
-                  [(num?) (parse-bool sexp)]
-                  [(char?) (parse-bool sexp)]
-                  [(bool?) (parse-bool sexp)]
-                  [(string?) (parse-bool sexp)]
-                  [(list?) (parse-bool sexp)]
-                  [(empty?) (parse-bool sexp)]
+                  [(<) (parse-ord sexp)]
+                  [(<=) (parse-ord sexp)]
+                  [(>=) (parse-ord sexp)]
+                  [(>) (parse-ord sexp)]
+                  [(zero?) (parse-pred sexp)]
+                  [(num?) (parse-pred sexp)]
+                  [(char?) (parse-pred sexp)]
+                  [(bool?) (parse-pred sexp)]
+                  [(string?) (parse-pred sexp)]
+                  [(list?) (parse-pred sexp)]
+                  [(empty?) (parse-pred sexp)]
                   [(+) (parse-num sexp)]
                   [(-) (parse-num sexp)]
                   [(*) (parse-num sexp)]
@@ -53,6 +54,10 @@
                   [(length) (parse-list sexp)]
                   [(string-length) (parse-str sexp)]
                   [(string-append) (parse-str sexp)]
+                  [(fun) (parse-fun sexp)]
+                  [(app) (parse-fun sexp)]
+                  [(with) (parse-fun sexp)]
+                  [(with*) (parse-fun sexp)]
                   [else (listS (map (lambda (x) (parse x)) sexp))]))
 
 
@@ -94,13 +99,16 @@
 (define (parse-if sexp)
     (case (car sexp)
         [(if) (cond
-                    [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes")]
+                    [(<= (length sexp) 3) (error 'parse "No hay argumentos suficientes")]
                     [(> (length sexp) 4) (error 'parse "Aridad incorrecta")]
                     [else (iFS (parse (second sexp)) (parse (third sexp)) (parse (fourth sexp)))])]
         [(if0) (cond
-                    [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes")]
+                    [(<= (length sexp) 3) (error 'parse "No hay argumentos suficientes")]
                     [(> (length sexp) 4) (error 'parse "Aridad incorrecta")]
-                    [else (iF0 (parse (second sexp)) (parse (third sexp)) (parse (fourth sexp)))])]))
+                    [else (iF0 (parse (second sexp)) (parse (third sexp)) (parse (fourth sexp)))])]
+        [(cond) (cond
+                    [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes")]
+                    [else (cnds sexp)])]))
 
 ;; Parsea una lista de listass-expression a un ASA en SCFWBAE
 ;; parse-str :: s-expression --> SCFWBAE
@@ -153,23 +161,12 @@
         [(not) (cond
                         [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes")]
                         [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
-                        [else (opS not (map (lambda (x) (parse x)) (cdr sexp)))])]
-        [(<) (cond
-                    [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes")]
-                    [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
-                    [else (opS < (map (lambda (x) (parse x)) (cdr sexp)))])]
-        [(<=) (cond
-                    [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes")]
-                    [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
-                    [else (opS <= (map (lambda (x) (parse x)) (cdr sexp)))])]
-        [(>=) (cond
-                    [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes")]
-                    [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
-                    [else (opS >= (map (lambda (x) (parse x)) (cdr sexp)))])]
-        [(>) (cond
-                    [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes")]
-                    [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
-                    [else (opS > (map (lambda (x) (parse x)) (cdr sexp)))])]
+                        [else (opS not (map (lambda (x) (parse x)) (cdr sexp)))])]))
+
+;; Parsea una lista de predicados s-expression a un ASA en SCFWBAE
+;; parse-bool :: s-expression --> SCFWBAE
+(define (parse-pred sexp)
+    (case (car sexp)
         [(zero?) (cond
                           [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes")]
                           [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
@@ -198,3 +195,65 @@
                           [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes")]
                           [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
                           [else (opS zero? (map (lambda (x) (parse x)) (cdr sexp)))])]))
+
+;; Parsea una lista de ordenes s-expression a un ASA en SCFWBAE
+;; parse-bool :: s-expression --> SCFWBAE
+(define (parse-ord sexp)
+    (case (car sexp)
+        [(<) (cond
+                    [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes")]
+                    [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+                    [else (opS < (map (lambda (x) (parse x)) (cdr sexp)))])]
+        [(<=) (cond
+                    [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes")]
+                    [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+                    [else (opS <= (map (lambda (x) (parse x)) (cdr sexp)))])]
+        [(>=) (cond
+                    [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes")]
+                    [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+                    [else (opS >= (map (lambda (x) (parse x)) (cdr sexp)))])]
+        [(>) (cond
+                    [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes")]
+                    [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+                    [else (opS > (map (lambda (x) (parse x)) (cdr sexp)))])]))
+
+;; Parsea una lista de funciones s-expression a un ASA en SCFWBAE
+;; parse-bool :: s-expression --> SCFWBAE
+(define (parse-fun sexp)
+    (case (car sexp)
+        [(fun) (cond
+                      [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes")]
+                      [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+                      [else (funS (second sexp) (parse (third sexp)))])]
+        [(app) (cond
+                      [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes")]
+                      [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+                      [else (appS (parse (second sexp)) (map (lambda (x) (parse x)) (third sexp)))])]
+        [(with) (cond
+                      [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes")]
+                      [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+                      [(<= (length (second sexp)) 1) (error 'parse "El identificador no posee un valor")]
+                      [(> (length (second sexp)) 2) (error 'parse "El identificador sólo puede recibir un valor")]
+                      [else (withS (list (binding (first (second sexp)) (parse (second (second sexp))))) (parse (third sexp)))])]
+        [(with*) (cond
+                      [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes")]
+                      [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+                      [else (withS* (map (lambda (x) (binds x)) (second sexp)) (parse (third sexp)))])]))
+
+
+
+;; Parsea una condicional s-expression a otra en SCFWBAE
+;; cnds :: s-expression --> SCFWBAE
+(define (cnds sexp)
+    (case (car sexp)
+        [(cond) (condS (append (map (lambda (x) (condition (parse (first x)) (parse (second x)))) (no-last (cdr sexp)))   (list (else-cond (parse (second (last sexp)))))    )     )]))
+
+;; Elimina el último elemento de una lista
+;; no-last :: s-expression --> s-expression 
+(define (no-last sexp)
+    (reverse (cdr (reverse sexp))))
+
+;; Transforma de s-expression a Binding
+;; binds :: s-expression --> Binding
+(define (binds sexp)
+    (binding (first sexp) (parse (second sexp))))

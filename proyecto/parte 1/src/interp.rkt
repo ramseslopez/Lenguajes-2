@@ -11,7 +11,7 @@
 ;; (define (lookup name ds)
 (define (lookup name ds)
     (match ds
-        [(mtSub) (error "Variable libre")]
+        [(mtSub) (error 'lookup "Variable libre")]
         [(aSub id value env) (cond
                                            [(equal? id name) value]
                                            [else (lookup name env)])]))
@@ -21,8 +21,7 @@
 ;; sustituciones y lo interpreta dependiendo de las definiciones dentro del caché,
 ;; devolviendo el valor numérico correspondiente.
 ;; interp :: CFWBAE DefrdSub --> CFWBAE-Value
-(define (interp expr ds)
-    (operate (subst expr ds)))
+;(define (interp expr ds)    (operate (subst expr ds)))
 
 ;; Realiza la sustitución de las variables almacenadas en el ambiente
 ;; subst :: CFWBAE DefrdSub --> CFWBAE
@@ -34,27 +33,7 @@
 
 ;; Realiza la operación correspondiente acorde con cada expresión
 ;; operate :: CFWBAE --> CFWBAE-Value
-(define (operate xs)
-    (match xs
-        [(id i) xs]
-        [(num n) (numV n)]
-        [(op g zs) (match g
-                            #|[+ (numV (apply + (map num-n (map desnum zs))))]
-                            [- (numV (apply - (map num-n (map desnum zs))))]
-                            [* (numV (apply * (map num-n (map desnum zs))))]
-                            [/ (numV (apply / (map num-n (map desnum zs))))]|#
-                            [sub1 (cond
-                                        [(equal? (length zs) 1) (numV (sub1 (first zs)))]
-                                        [else "La cardinalidad de la lista es mayor a 1"])]
-                            [add1 (cond
-                                        [(equal? (length zs) 1) (numV (add1 (first zs)))]
-                                        [else "La cardinalidad de la lista es mayor a 1"])]
-                            [modulo (cond
-                                            [(equal? (length zs) 2) (numV (modulo (first zs) (last zs)))]
-                                            [else (error "La cardinalidad de la lista es mayor a 2")])]
-                            [expt (cond
-                                            [(equal? (length zs) 2) (numV (expt (first zs) (last zs)))]
-                                            [else (error "La cardinalidad de la lista es mayor a 2")])])]))
+;(define (operate xs)    ())
 
 (define (desnum numn)
     (match numn
