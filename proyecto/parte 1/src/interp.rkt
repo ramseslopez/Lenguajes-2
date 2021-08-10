@@ -33,34 +33,33 @@
 															[(equal? cnd (bool #t)) (interp then ds)]
 															[(equal? cnd (bool #f)) (interp els ds)]
 															[else (iF (interp cnd ds) then els)])]
-				 [(op f lst) (match f
-														[not (match lst
-																				[(cons (bool x) '()) (boolV (not x))]
-																				[else (error 'interp "ERROR not")])]
-														[< (match lst
-																			[(cons (num x) (cons (num y) '())) (boolV (< x y))]
-																			[else (error 'interp "ERROR <")])]
+				 [(op f lst) (cond
+											 [(equal? f <) (match lst
+																						[(cons (num x) (cons (num y) '())) (boolV (< x y))]
+																						[else (error 'interp "ERROR <")])]
+											 [(equal? f +) (match lst
+																						['() (numV 0)]
+																						[(cons (num x) xs) (numV (apply + (map num-n (cons (num x) xs))))]
+																						[else (error 'interp "La suma sólo opera con números")])]
+											 [(equal? f -) (match lst
+																						['() (numV 0)]
+																						[(cons (num x) xs) (numV (apply - (map num-n (cons (num x) xs))))]
+																						[else (error 'interp "La resta sólo opera con números")])]
+											 [(equal? f *) (match lst
+																						['() (numV 0)]
+																						[(cons (num x) xs) (numV (apply * (map num-n (cons (num x) xs))))]
+																						[else (error 'interp "La *sólo opera con números")])]
+											 [(equal? f oR) (match lst
+																						 [(cons (bool x) (cons (bool y) '())) (boolV (or x y))]
+																						 [else (error 'interp "ERROR or")])]
+											 [(equal? f not) (match lst
+																							[(cons (bool x) '()) (boolV (not x))]
+																							[else (error 'interp "ERROR not")])]
 
-														[+ (match lst
-																			['() (numV 0)]
-																			[(cons (num x) xs) (numV (apply + (map num-n (cons (num x) xs))))]
-																			[else (error 'interp "La suma sólo opera con números")])]
-														[- (match lst
-																			['() (numV 0)]
-																			[(cons (num x) xs) (numV (apply - (map num-n (cons (num x) xs))))]
-																			[else (error 'interp "La resta sólo opera con números")])]
-														[* (match lst
-																			['() (numV 0)]
-																			[(cons (num x) xs) (numV (apply * (map num-n (cons (num x) xs))))]
-																			[else (error 'interp "La *sólo opera con números")])]
-
-														[oR (match lst
-																			 [(cons (bool x) (cons (bool y) '())) (boolV (or x y))]
-																			 [else (error 'interp "ERROR or")])]
-														[zero? (match lst
-																					[(cons (num x) '()) (boolV (zero? x))]
-																					[else (error 'interp "ERROR zero?")])]
-														)]))
+											 [(equal? f zero?) (match lst
+																								[(cons (num x) '()) (boolV (zero? x))]
+																								[else (error 'interp "ERROR zero?")])]
+											 )]))
 
 
 ;(interp (op + '()) (mtSub))
