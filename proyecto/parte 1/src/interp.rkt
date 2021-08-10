@@ -30,38 +30,95 @@
 				 [(strinG str) (charV str)]
 				 [(lisT xs) (listV (map (lambda (x) (interp x ds)) xs))]
 				 [(iF cnd then els) (cond
-															[(equal? cnd (bool #t)) (interp then ds)]
-															[(equal? cnd (bool #f)) (interp els ds)]
-															[else (iF (interp cnd ds) then els)])]
+																					[(equal? cnd (bool #t)) (interp then ds)]
+																					[(equal? cnd (bool #f)) (interp els ds)]
+																					[else (iF (interp cnd ds) then els)])]
 				 [(op f lst) (cond
-											 [(equal? f <) (match lst
-																						[(cons (num x) (cons (num y) '())) (boolV (< x y))]
-																						[else (error 'interp "ERROR <")])]
-											 [(equal? f +) (match lst
-																						['() (numV 0)]
-																						[(cons (num x) xs) (numV (apply + (map num-n (cons (num x) xs))))]
-																						[else (error 'interp "La suma sólo opera con números")])]
-											 [(equal? f -) (match lst
-																						['() (numV 0)]
-																						[(cons (num x) xs) (numV (apply - (map num-n (cons (num x) xs))))]
-																						[else (error 'interp "La resta sólo opera con números")])]
-											 [(equal? f *) (match lst
-																						['() (numV 0)]
-																						[(cons (num x) xs) (numV (apply * (map num-n (cons (num x) xs))))]
-																						[else (error 'interp "La *sólo opera con números")])]
-											 [(equal? f oR) (match lst
-																						 [(cons (bool x) (cons (bool y) '())) (boolV (or x y))]
-																						 [else (error 'interp "ERROR or")])]
-											 [(equal? f not) (match lst
-																							[(cons (bool x) '()) (boolV (not x))]
-																							[else (error 'interp "ERROR not")])]
+															 [(equal? f <) (match lst
+																													[(cons (num x) (cons (num y) '())) (boolV (< x y))]
+																													[else (error 'interp "ERROR <")])]
+																	[(equal? f <=) (match lst
+																															[(cons (num x) (cons (num y) '())) (boolV (<= x y))]
+																															[else (error 'interp "ERROR <=")])]
+																[(equal? f >=) (match lst
+																														[(cons (num x) (cons (num y) '())) (boolV (>= x y))]
+																														[else (error 'interp "ERROR >=")])]
+																[(equal? f >) (match lst
+																													[(cons (num x) (cons (num y) '())) (boolV (> x y))]
+																													[else (error 'interp "ERROR >")])]
+																[(equal? f +) (match lst
+																														['() (numV 0)]
+																														[(cons (num x) xs) (numV (apply + (map num-n (cons (num x) xs))))]
+																														[else (error 'interp "La suma sólo opera con números")])]
+															  [(equal? f -) (match lst
+																										['() (numV 0)]
+																										[(cons (num x) xs) (numV (apply - (map num-n (cons (num x) xs))))]
+																										[else (error 'interp "La resta sólo opera con números")])]
+															 [(equal? f *) (match lst
+																										['() (numV 0)]
+																										[(cons (num x) xs) (numV (apply * (map num-n (cons (num x) xs))))]
+																										[else (error 'interp "La multiplicación sólo opera con números")])]
+																[(equal? f /) (match lst
+																										['() (numV 0)]
+																										[(cons (num x) xs) (numV (apply / (map num-n (cons (num x) xs))))]
+																										[else (error 'interp "La división sólo opera con números")])]
+															 [(equal? f add1) (match lst
+																											[(cons (num x) '()) (boolV (add1 x))]
+																											[else (error 'interp "ERROR add1")])]
+															 [(equal? f sub1) (match lst
+																											[(cons (num x) '()) (boolV (sub1 x))]
+																											[else (error 'interp "ERROR sub1")])]
+															 [(equal? f oR) (match lst
+																										 [(cons (bool x) (cons (bool y) '())) (boolV (or x y))]
+																										 [else (error 'interp "ERROR or")])]
+																[(equal? f anD) (match lst
+																										 [(cons (bool x) (cons (bool y) '())) (boolV (and x y))]
+																										 [else (error 'interp "ERROR or")])]
+															 [(equal? f not) (match lst
+																											[(cons (bool x) '()) (boolV (not x))]
+																											[else (error 'interp "ERROR not")])]
+															 [(equal? f zero?) (match lst
+																												[(cons (num x) '()) (boolV (zero? x))]
+																												[else (error 'interp "ERROR zero?")])]
+																[(equal? f num?) (match lst
+																												[(cons (num x) '()) (boolV (num? x))]
+																												[else (error 'interp "ERROR num?")])]
+																[(equal? f bool?) (match lst
+																												[(cons (bool x) '()) (boolV (bool? x))]
+																												[else (error 'interp "ERROR bool?")])]
+																[(equal? f char?) (match lst
+																												[(cons (chaR x) '()) (boolV (char? x))]
+																												[else (error 'interp "ERROR char?")])]
+																[(equal? f string?) (match lst
+																												[(cons (strinG x) '()) (boolV (string? x))]
+																												[else (error 'interp "ERROR string	?")])]
+																[(equal? f list?) (match lst
+																												[(cons (lisT x) '()) (boolV (list? x))]
+																												[else (error 'interp "ERROR list	?")])]
+																[(equal? f empty?) (match lst
+																												[(cons (lisT x) '()) (boolV (empty? x))]
+																												[else (error 'interp "ERROR empty	?")])]
+																	[(equal? f cons) (match lst
+																											 	[(cons x (list (lisT xs))) (interp (lisT (cons x xs)) ds)]
+																											 	[else (error 'interp "ERROR cons")])]
+																	[(equal? f car) (match lst
+																														[(list (lisT (cons x xs))) (interp x ds)]
+																											 			[else (error 'interp "ERROR car")])]
+																	[(equal? f cdr) (match lst
+																														[(list (lisT (cons x xs))) (interp (lisT xs) ds)]
+																											 			[else (error 'interp "ERROR cdr")])]
+																	[(equal? f append) (match lst
+																												[(cons x '()) (interp x ds)]
+																											 	[(cons (lisT x) (list xs)) (interp (lisT (append x  (interp (op append xs) ds))) ds)]
+																											 	[else (error 'interp "ERROR append")])]
+															 )]))
 
-											 [(equal? f zero?) (match lst
-																								[(cons (num x) '()) (boolV (zero? x))]
-																								[else (error 'interp "ERROR zero?")])]
-											 )]))
 
-
+(define (concatena l1 l2)
+  (cond
+    [(empty? l1) l2]
+    [(empty? l2) l1]
+    [else (cons (car l1) (concatena (cdr l1) l2))]))
 ;(interp (op + '()) (mtSub))
 (interp (iF (bool #f) (num 6) (num 8)) (mtSub))
 
