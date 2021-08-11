@@ -53,8 +53,12 @@
 (define (ifos sexpr)
   (match sexpr
     [(condS lst) (cond
-                   [(equal? (length lst) 2) (iF (desugar (first (if1 (first lst)))) (desugar (second (if1 (first lst)))) (desugar (first (if2 (second lst)))))]
-                   [else (iF (desugar (first (if1 (first lst)))) (desugar (second (if1 (first lst)))) (ifos (condS (cdr lst))))])]))
+                   [(equal? (length lst) 2) (iF (desugar (first (if1 (first lst))))
+                                                (desugar (second (if1 (first lst))))
+                                                (desugar (first (if2 (second lst)))))]
+                   [else (iF (desugar (first (if1 (first lst))))
+                             (desugar (second (if1 (first lst))))
+                             (ifos (condS (cdr lst))))])]))
 
 ;; Transforma un condition a una lista
 ;; if1 :: Condition --> (listof SCFWBAE)

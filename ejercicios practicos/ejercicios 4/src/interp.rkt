@@ -30,8 +30,10 @@
         [(op f xs) (op f (map (lambda (x) (subst x ds)) xs))]
         [(with ys body) (match ys
                                     ['() (subst body ds)]
-                                    [(cons (binding a b) zs) (subst (with zs body) (aSub a b ds))])] ))
-        ;[(with* ys body) ()]))
+                                    [(cons (binding a b) zs) (subst (with zs body) (aSub a b ds))])]
+        [(with* ys body) (match ys
+          ['() (subst body ds)]
+          [(cons (binding a b) xs) (subst (with* xs body) (aSub a b ds))])]))
 
 ;; Realiza la operación correspondiente acorde con cada expresión
 ;; operate :: WAE --> WAE

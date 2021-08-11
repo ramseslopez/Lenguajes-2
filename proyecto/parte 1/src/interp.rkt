@@ -13,8 +13,16 @@
   (match ds
     [(mtSub) (error 'lookup "Identificador libre")]
     [(aSub id value env) (cond
-																[(equal? id name) value]
-																[else (lookup name env)])]))
+                           [(equal? id name) value]
+                           [else (lookup name env)])]))
+
+(define (value-to-exp exp)
+  (match exp
+    [(numV n) (num n)]
+    [(boolV b) (bool b)]
+    [(charV chr) (chaR chr)]
+    [(stringV str) (strinG str)]))
+																
 ;; Toma un árbol de sintáxis abstraca del lenguaje CFWAE, un caché de
 ;; sustituciones y lo interpreta dependiendo de las definiciones dentro del caché,
 ;; devolviendo el valor numérico correspondiente.
@@ -25,7 +33,7 @@
     [(num n) (numV n)]
     [(bool b) (boolV b)]
     [(chaR chr) (charV chr)]
-    [(strinG str) (charV str)]
+    [(strinG str) (stringV str)]
     [(lisT xs) (listV (map (lambda (x) (interp x ds)) xs))]
     [(iF cnd then els) (cond
                          [(equal? cnd (bool #t)) (interp then ds)]
@@ -54,6 +62,7 @@
                                   [else (error 'interp "La resta sólo opera con números")])]
                   [(equal? f *) (match lst
                                   ['() (numV 0)]
+                                  [(cons (numV x) xs) (numV (apply * (map num-n (cons (num x) xs))))]
                                   [(cons (num x) xs) (numV (apply * (map num-n (cons (num x) xs))))]
                                   [else (error 'interp "La multiplicación sólo opera con números")])]
                   [(equal? f /) (match lst
@@ -61,10 +70,11 @@
                                   [(cons (num x) xs) (numV (apply / (map num-n (cons (num x) xs))))]
                                   [else (error 'interp "La división sólo opera con números")])]
                   [(equal? f add1) (match lst
-                                     [(cons (num x) '()) (boolV (add1 x))]
+                                     [(cons (numV x) '()) (numV (add1 x))]
+                                     [(cons (num x) '()) (numV (add1 x))]
                                      [else (error 'interp "La operación sucesor sólo acepta un número como parámetro")])]
                   [(equal? f sub1) (match lst
-                                     [(cons (num x) '()) (boolV (sub1 x))]
+                                     [(cons (num x) '()) (numV (sub1 x))]
                                      [else (error 'interp "La operación predecesor sólo acepta un número como parámetro")])]
                   [(equal? f oR) (match lst
                                    [(cons (bool x) (cons (bool y) '())) (boolV (or x y))]
@@ -107,21 +117,44 @@
                                     [else (error 'interp "La operación cdr sólo acepta una lista como parámetro")])]
                   [(equal? f append) (match lst
                                        [(cons x '()) (interp x ds)]
-                                       [(cons (lisT x) (cons (lisT y) ys))  (interp (op append (cons (appT (lisT x) (lisT y)) ys)) ds)]
+                                       [(cons (lisT x) (cons (lisT y) ys)) (interp (op append (cons (appT (lisT x) (lisT y)) ys)) ds)]
                                        [else (error 'interp "La operación append sólo acepta listas como parámetros")])]
                   [(equal? f length) (match lst
                                        ['() (numV 0)]
                                        [(list '()) (numV 0)]
                                        [(list (lisT '())) (numV 0)]
-                                       [(cons x xs) (numV (lengthT (lisT lst)))])]
-                  )]))
+                                       [(cons (lisT x) '()) (numV (lengthT (lisT x)))]
+                                       [else (error 'interp "La operación length sólo recibe una lista como parámetro")])]
+                  [(equal? f string-append) (match lst
+                                              [(cons x '()) (interp x ds)]
+                                              [(cons (strinG x) (cons (strinG y) ys)) (interp (op string-append (cons (strinG (string-append x y)) ys)) ds)]
+                                              [else (error 'interp "La operación string-append sólo recibe cadenas como parámetro")])]
+                  [(equal? f string-length) (match lst
+                                              [(list (strinG a)) (numV (string-length a))]
+                                              [else (error 'interp "La operación length sólo recibe una lista como parámetro")])])]
+    [(fun param body) (closure param body ds)]
+    [(app fun args) (let ([fun-val (interp fun ds)])
+                      (interp (closure-body fun-val)
+                              (aSub (closure-param fun-val)
+                                    (interp args ds)
+                                    (closure-env fun-val))))]))
 
+#|
+(local ([define fun-val (interp fun ds)])
+                      (interp (closure-body fun-val)
+                              (aSub (closure-param fun-val)
+                                    (interp args ds)
+                                    (closure-env fun-val))))
 
-(define (vtoint n)
-  (match n
-    [(numV a) a]))
+(let ([fun-val (interp fun ds)])
+                      (interp (closure-body fun-val)
+                              (aSub (closure-param fun-val)
+                                    (interp args ds)
+                                    (closure-env fun-val))))
+|#
 
-;; CFWAE CFWAE --> CFWAE
+;; Concatena dos listas del tipo lisT
+;; CFWBAE CFWBAE --> CFWBAE
 (define (appT l1 l2)
   (match l1
     ['() l2]
@@ -130,7 +163,8 @@
                  [(lisT '()) l1]
                  [(lisT ys) (lisT (appL xs ys))])]))
 
-;; appL :: CFWAE CFWAE --> CFWAE
+;; Concatena dos listas
+;; appL :: CFWBAE CFWBAE --> CFWBAE
 (define (appL l1 l2)
   (match l1
     ['() l2]
@@ -138,12 +172,15 @@
                    ['() l1]
                    [ys (cons x (appL xs ys))])]))
 
+;; Calcula la longitud de una lista de tipo lisT
+;; lengthT :: CFWBAE --> number
 (define (lengthT sexp)
   (match sexp
     [(lisT '()) 0]
     [(lisT (cons x xs)) (+ 1 (lengthT (lisT xs)))]))
 
 
+;(interp (desugar (parse '{with {x 5} {* x 2}})) (mtSub))
 ;(interp (desugar (parse '{length {1 2 3 4 5}})) (mtSub))
 
 ;(interp (op + '()) (mtSub))

@@ -9,7 +9,7 @@
   [condition (test-expr SCFWBAE?) (then-expr SCFWBAE?)]
   [else-cond (else-expr SCFWBAE?)])
 
-;; Definición del tipo SCFWBAEL
+;; Definición del tipo SCFWBAE
 (define-type SCFWBAE
   [idS     (i symbol?)]
   [numS    (n number?)]
@@ -29,7 +29,7 @@
 
 ;; Gramáticas de la práctica anterior. Esto lo utilizarás sólo si
 ;; quieres ganar los puntos extra. Puedes eliminarlo, en otro caso.
-;; Definición del tipo CFWBAEL
+;; Definición del tipo CFWBAE
 (define-type CFWBAE
   [id     (i symbol?)]
   [num    (n number?)]
@@ -44,17 +44,17 @@
 
 ;; Data-type que representa un caché de sustituciones
 (define-type DefrdSub
-						 [mtSub]
-						 [aSub  (name symbol?) (value CFWBAE-Value?) (ds DefrdSub?)])
+  [mtSub]
+  [aSub  (name symbol?) (value CFWBAE-Value?) (ds DefrdSub?)])
 
 ;;Data-type que representa la sintaxis abstracta de CFWBAE-Value
 (define-type CFWBAE-Value
-						 [closure  (param (listof symbol?)) (body CFWBAE?) (env DefrdSub?)]
-						 [numV     (n number?)]
-						 [boolV    (b boolean?)]
-						 [charV    (c char?)]
-						 [stringV  (s string?)]
-						 [listV    (l (listof CFWBAE-Value?))])
+  [closure  (param (listof symbol?)) (body CFWBAE?) (env DefrdSub?)]
+  [numV     (n number?)]
+  [boolV    (b boolean?)]
+  [charV    (c char?)]
+  [stringV  (s string?)]
+  [listV    (l (listof CFWBAE-Value?))])
 
 ;; Definición del procedimiento oR
 (define oR (lambda (x) (or x x)))
