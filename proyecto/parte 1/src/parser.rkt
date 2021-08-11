@@ -21,45 +21,47 @@
 ;; Parsea una lista s-expression a un ASA en SCFWBAE
 ;; parse-aux :: s-expression --> SCFWBAE
 (define (parse-aux sexp)
-	(case (car sexp)
-		[(if) (parse-if sexp)]
-		[(if0) (parse-if sexp)]
-		[(cond) (parse-if sexp)]
-		[(add1) (parse-num sexp)]
-		[(sub1) (parse-num sexp)]
-		[(modulo) (parse-num sexp)]
-		[(expt) (parse-num sexp)]
-		[(or) (parse-bool sexp)]
-		[(and) (parse-bool sexp)]
-		((not) (parse-bool sexp))
-		[(<) (parse-ord sexp)]
-		[(<=) (parse-ord sexp)]
-		[(>=) (parse-ord sexp)]
-		[(>) (parse-ord sexp)]
-		[(zero?) (parse-pred sexp)]
-		[(num?) (parse-pred sexp)]
-		[(char?) (parse-pred sexp)]
-		[(bool?) (parse-pred sexp)]
-		[(string?) (parse-pred sexp)]
-		[(list?) (parse-pred sexp)]
-		[(empty?) (parse-pred sexp)]
-		[(+) (parse-num sexp)]
-		[(-) (parse-num sexp)]
-		[(*) (parse-num sexp)]
-		[(/) (parse-num sexp)]
-		[(cons) (parse-list sexp)]
-		[(car) (parse-list sexp)]
-		[(cdr) (parse-list sexp)]
-		[(append) (parse-list sexp)]
-		[(length) (parse-list sexp)]
-		[(string-length) (parse-str sexp)]
-		[(string-append) (parse-str sexp)]
-		[(fun) (parse-fun sexp)]
-		[(app) (parse-fun sexp)]
-		[(with) (parse-fun sexp)]
-		[(with*) (parse-fun sexp)]
-		[else (listS (map (lambda (x) (parse x)) sexp))]))
-
+	(match sexp
+			['() (void sexp)]
+			[(cons x xs) (case (car sexp)
+														[(lst) (lsts sexp)]
+														[(if) (parse-if sexp)]
+														[(if0) (parse-if sexp)]
+														[(cond) (parse-if sexp)]
+														[(add1) (parse-num sexp)]
+														[(sub1) (parse-num sexp)]
+														[(modulo) (parse-num sexp)]
+														[(expt) (parse-num sexp)]
+														[(or) (parse-bool sexp)]
+														[(and) (parse-bool sexp)]
+														((not) (parse-bool sexp))
+														[(<) (parse-ord sexp)]
+														[(<=) (parse-ord sexp)]
+														[(>=) (parse-ord sexp)]
+														[(>) (parse-ord sexp)]
+														[(zero?) (parse-pred sexp)]
+														[(num?) (parse-pred sexp)]
+														[(char?) (parse-pred sexp)]
+														[(bool?) (parse-pred sexp)]
+														[(string?) (parse-pred sexp)]
+														[(list?) (parse-pred sexp)]
+														[(empty?) (parse-pred sexp)]
+														[(+) (parse-num sexp)]
+														[(-) (parse-num sexp)]
+														[(*) (parse-num sexp)]
+														[(/) (parse-num sexp)]
+														[(cons) (parse-list sexp)]
+														[(car) (parse-list sexp)]
+														[(cdr) (parse-list sexp)]
+														[(append) (parse-list sexp)]
+														[(length) (parse-list sexp)]
+														[(string-length) (parse-str sexp)]
+														[(string-append) (parse-str sexp)]
+														[(fun) (parse-fun sexp)]
+														[(app) (parse-fun sexp)]
+														[(with) (parse-fun sexp)]
+														[(with*) (parse-fun sexp)]
+														[else (listS (map (lambda (x) (parse x)) sexp))])]))
 
 ;; Parsea una lista de números s-expression a un ASA en SCFWBAE
 ;; parse-num :: s-expression --> SCFWBAE
@@ -194,7 +196,7 @@
 		[(empty?) (cond
 								[(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes")]
 								[(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
-								[else (opS zero? (map (lambda (x) (parse x)) (cdr sexp)))])]))
+								[else (opS empty? (map (lambda (x) (parse x)) (cdr sexp)))])]))
 
 ;; Parsea una lista de ordenes s-expression a un ASA en SCFWBAE
 ;; parse-bool :: s-expression --> SCFWBAE
@@ -246,7 +248,8 @@
 ;; cnds :: s-expression --> SCFWBAE
 (define (cnds sexp)
 	(case (car sexp)
-		[(cond) (condS (append (map (lambda (x) (condition (parse (first x)) (parse (second x)))) (no-last (cdr sexp))) (list (else-cond (parse (second (last sexp)))))))]))
+		[(cond) (condS (append (map (lambda (x) (condition (parse (first x))
+									(parse (second x)))) (no-last (cdr sexp))) (list (else-cond (parse (second (last sexp)))))))]))
 
 ;; Elimina el último elemento de una lista
 ;; no-last :: s-expression --> s-expression
@@ -257,3 +260,15 @@
 ;; binds :: s-expression --> Binding
 (define (binds sexp)
 	(binding (first sexp) (parse (second sexp))))
+
+;; Parsea una lista a una lista con azúcar
+;; lsts :: s-expression --> SCFWBAE
+(define (lsts sexp)
+	(case (car sexp)
+		[(lst) (listS (map (lambda (x) (parse x)) (cdr sexp)))]))
+
+;; Verifica si una lista es vacía y la parsea
+;; void :: s-expression --> SCFWBAE
+(define (void sexp)
+	(cond
+		['() (listS '())]))
