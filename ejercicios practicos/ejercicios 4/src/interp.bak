@@ -8,32 +8,32 @@
 ;; o informando un error si no lo encuentra.
 ;; lookup :: symbol DefrdSub -> WAE
 (define (lookup name ds)
-  (match ds
-    [(mtSub) (error "Variable libre")]
-    [(aSub id value env) (cond
-                           [(equal? id name) value]
-                           [else (lookup name env)])]))
+    (match ds
+        [(mtSub) (error "Variable libre")]
+        [(aSub id value env) (cond
+                                           [(equal? id name) value]
+                                           [else (lookup name env)])]))
 
 ;; Toma un árbol de sintáxis abstraca del lenguaje WAE, un caché de
 ;; sustituciones y lo interpreta dependiendo de las definiciones dentro del caché,
 ;; devolviendo el valor numérico correspondiente.
 ;; interp: WAE DefrdSub -> WAE
 (define (interp expr ds)
-  (operate (subst expr ds)))
+    (operate (subst expr ds)))
 
 ;; Realiza la sustitución de las variables almacenadas en el ambiente
 ;; subst :: WAE DefrdSub --> WAE
 (define (subst expr ds)
-  (match expr
-    [(id i) (lookup i ds)]
-    [(num n) expr]
-    [(op f xs) (op f (map (lambda (x) (subst x ds)) xs))]
-    [(with ys body) (match ys
-                      ['() (subst body ds)]
-                      [(cons (binding a b) zs) (subst (with zs body) (aSub a b ds))])]
-    [(with* ys body) (match ys
-                       ['() (subst body ds)]
-                       [(cons (binding a b) xs) (subst (with* xs body) (aSub a b ds))])]))
+      (match expr
+        [(id i) (lookup i ds)]
+        [(num n) expr]
+        [(op f xs) (op f (map (lambda (x) (subst x ds)) xs))]
+        [(with ys body) (match ys
+                                    ['() (subst body ds)]
+                                    [(cons (binding a b) zs) (subst (with zs body) (aSub a b ds))])]
+        [(with* ys body) (match ys
+          ['() (subst body ds)]
+          [(cons (binding a b) xs) (subst (with* xs body) (aSub a b ds))])]))
 
 ;; Realiza la operación correspondiente acorde con cada expresión
 ;; operate :: WAE --> WAE
@@ -53,20 +53,20 @@
 
 
 (define (bind-conv x)
-  (match x
-    [(binding a b) (list a b)]))
+    (match x
+      [(binding a b) (list a b)]))
 
 (define (bind-list xs)
-  (map (lambda (x) (bind-conv x)) xs))
+    (map (lambda (x) (bind-conv x)) xs))
 
 
 (define (subst-aux expr sub-id value)
-  (match expr
-    [(id i) (cond
-              [(equal? i sub-id) value]
-              [else expr])]
-    [(num n) expr]
-    [(op f lst) (op f (map (lambda (x) (subst-aux x sub-id value)) lst))]))
+    (match expr
+        [(id i) (cond
+                      [(equal? i sub-id) value]
+                      [else expr])]
+        [(num n) expr]
+        [(op f lst) (op f (map (lambda (x) (subst-aux x sub-id value)) lst))]))
 
 #|(define (sub-bind lst)
     (match lst
@@ -84,16 +84,16 @@
     [else (pertenece? e (cdr lst))]))
 
 (define (snds xs)
-  (match xs
-    ['() '()]
-    [(cons (binding a b) ys) (cons b (snds ys))]))
+    (match xs
+        ['() '()]
+        [(cons (binding a b) ys) (cons b (snds ys))]))
 
 (define (out sym lst)
-  (match lst
-    ['() lst]
-    [(cons (binding a b) xs) (cond
-                               [(equal? sym a) (list a b)]
-                               [else (out sym xs)])]))
+    (match lst
+        ['() lst]
+        [(cons (binding a b) xs) (cond
+                                                [(equal? sym a) (list a b)]
+                                                [else (out sym xs)])]))
 
 
 ;(sub-bind (list (binding 't (num 5)) (binding 'y (id 'u)) (binding 'u (num 8))))

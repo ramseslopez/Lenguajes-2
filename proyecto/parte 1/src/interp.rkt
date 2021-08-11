@@ -31,6 +31,7 @@
   (match expr
     [(id i) (lookup i ds)]
     [(num n) (numV n)]
+    [(numV n) (num n)]
     [(bool b) (boolV b)]
     [(chaR chr) (charV chr)]
     [(strinG str) (stringV str)]
@@ -131,13 +132,14 @@
                                               [else (error 'interp "La operación string-append sólo recibe cadenas como parámetro")])]
                   [(equal? f string-length) (match lst
                                               [(list (strinG a)) (numV (string-length a))]
-                                              [else (error 'interp "La operación length sólo recibe una lista como parámetro")])])]
+                                              [else (error 'interp "La operación string-length sólo recibe una cadena como parámetro")])])]
     [(fun param body) (closure param body ds)]
     [(app fun args) (let ([fun-val (interp fun ds)])
                       (interp (closure-body fun-val)
-                              (aSub (closure-param fun-val)
-                                    (interp args ds)
+                              (aSub (first (closure-param fun-val))
+                                    (interp-lst args ds)
                                     (closure-env fun-val))))]))
+
 
 #|
 (local ([define fun-val (interp fun ds)])
@@ -179,8 +181,17 @@
     [(lisT '()) 0]
     [(lisT (cons x xs)) (+ 1 (lengthT (lisT xs)))]))
 
+;; Interpreta todos los elementos de una lista de CFWBAE
+;; interp-lst :: (listof CFWBAE) DefrdSub --> (listof CFWBAE-Value)
+(define (interp-lst zs ds)
+  (match zs
+    ['() '()]
+    [(cons x '()) (interp x ds)]
+    [(cons x xs) (cons (interp x ds) (list (interp-lst xs ds)))]))
 
-;(interp (desugar (parse '{with {x 5} {* x 2}})) (mtSub))
+
+(require racket/trace)
+(trace interp)
 ;(interp (desugar (parse '{length {1 2 3 4 5}})) (mtSub))
 
 ;(interp (op + '()) (mtSub))
