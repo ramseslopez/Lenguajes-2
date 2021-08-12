@@ -1,1 +1,0 @@
-("8.0" ta6nt ("3969857c33f2a23bbc761f920ca46985e4ac0bd4" . "74c392900368845928135ca8202f766f27190817") #"C:\\Users\\virus\\Documents\\Lenguajes\\Lenguajes-2\\ejercicios practicos\\ejercicios 4\\src\\./grammars.rkt" (collects #"errortrace" #"errortrace-key.rkt") (collects #"plai" #"lang" #"reader.rkt") (collects #"plai" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))

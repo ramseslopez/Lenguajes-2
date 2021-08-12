@@ -16,13 +16,6 @@
                            [(equal? id name) value]
                            [else (lookup name env)])]))
 
-(define (value-to-exp exp)
-  (match exp
-    [(numV n) (num n)]
-    [(boolV b) (bool b)]
-    [(charV chr) (chaR chr)]
-    [(stringV str) (strinG str)]))
-																
 ;; Toma un árbol de sintáxis abstraca del lenguaje CFWAE, un caché de
 ;; sustituciones y lo interpreta dependiendo de las definiciones dentro del caché,
 ;; devolviendo el valor numérico correspondiente.
@@ -31,7 +24,6 @@
   (match expr
     [(id i) (lookup i ds)]
     [(num n) (numV n)]
-    [(numV n) (num n)]
     [(bool b) (boolV b)]
     [(chaR chr) (charV chr)]
     [(strinG str) (stringV str)]
@@ -42,56 +34,104 @@
                          [else (iF (interp cnd ds) then els)])]
     [(op f lst) (cond
                   [(equal? f <) (match lst
+                                  [(cons (id i) xs) (boolV (< (cond
+                                                                [(number? (intV (lookup i ds))) (numV-n (lookup i ds))]
+                                                                [else (error 'interp "La operación sólo acepta números como parámetro")])
+                                                              (num-n (first (map (lambda (c) (int-id c ds)) xs)))))]
+                                  [(cons (num x) xs) (boolV (< x (num-n (first (map (lambda (c) (int-id c ds)) xs)))))]
                                   [(cons (num x) (cons (num y) '())) (boolV (< x y))]
-                                  [else (error 'interp "La relación < sólo acepta números como parámetros")])]
+                                  [else (error 'interp "La operación sólo acepta números como parámetro")])]
                   [(equal? f <=) (match lst
+                                   [(cons (id i) xs) (boolV (<= (cond
+                                                                  [(number? (intV (lookup i ds))) (numV-n (lookup i ds))]
+                                                                  [else (error 'interp "La operación sólo acepta números como parámetro")])
+                                                                (num-n (first (map (lambda (c) (int-id c ds)) xs)))))]
+                                   [(cons (num x) xs) (boolV (<= x (num-n (first (map (lambda (c) (int-id c ds)) xs)))))]
                                    [(cons (num x) (cons (num y) '())) (boolV (<= x y))]
-                                   [else (error 'interp "La relación <= sólo acepta números como parámetros")])]
+                                   [else (error 'interp "La operación sólo acepta números como parámetro")])]
                   [(equal? f >=) (match lst
+                                   [(cons (id i) xs) (boolV (>= (cond
+                                                                  [(number? (intV (lookup i ds))) (numV-n (lookup i ds))]
+                                                                  [else (error 'interp "La operación sólo acepta números como parámetro")])
+                                                                (num-n (first (map (lambda (c) (int-id c ds)) xs)))))]
+                                   [(cons (num x) xs) (boolV (>= x (num-n (first (map (lambda (c) (int-id c ds)) xs)))))]
                                    [(cons (num x) (cons (num y) '())) (boolV (>= x y))]
-                                   [else (error 'interp "La relación >= sólo acepta números como parámetros")])]
+                                   [else (error 'interp "La operación sólo acepta números como parámetro")])]
                   [(equal? f >) (match lst
+                                  [(cons (id i) xs) (boolV (> (cond
+                                                                [(number? (intV (lookup i ds))) (numV-n (lookup i ds))]
+                                                                [else (error 'interp "La operación sólo acepta números como parámetro")])
+                                                              (num-n (first (map (lambda (c) (int-id c ds)) xs)))))]
+                                  [(cons (num x) xs) (boolV (> x (num-n (first (map (lambda (c) (int-id c ds)) xs)))))]
                                   [(cons (num x) (cons (num y) '())) (boolV (> x y))]
-                                  [else (error 'interp "La relación > sólo acepta números como parámetros")])]
+                                  [else (error 'interp "La operación sólo acepta números como parámetro")])]
                   [(equal? f +) (match lst
                                   ['() (numV 0)]
-                                  [(cons (num x) xs) (numV (apply + (map num-n (cons (num x) xs))))]
-                                  [else (error 'interp "La suma sólo opera con números")])]
+                                  [(cons (id i) xs) (numV (apply + (map num-n (cons (cond
+                                                                                      [(number? (intV (lookup i ds))) (num (numV-n (lookup i ds)))]
+                                                                                      [else (error 'interp "La operación sólo opera con números")])
+                                                                                    (map (lambda (c) (int-id c ds)) xs)))))]
+                                  [(cons (num x) xs) (numV (apply + (map num-n (cons (num x) (map (lambda (c) (int-id c ds)) xs)))))]
+                                  [else (error 'interp "La operación sólo opera con números")])]
                   [(equal? f -) (match lst
                                   ['() (numV 0)]
-                                  [(cons (num x) xs) (numV (apply - (map num-n (cons (num x) xs))))]
-                                  [else (error 'interp "La resta sólo opera con números")])]
+                                  [(cons (id i) xs) (numV (apply - (map num-n (cons (cond
+                                                                                      [(number? (intV (lookup i ds))) ((num (numV-n (lookup i ds))))]
+                                                                                      [else (error 'interp "La operación sólo opera con números")])
+                                                                                    (map (lambda (c) (int-id c ds)) xs)))))]
+                                  [(cons (num x) xs) (numV (apply - (map num-n (cons (num x) (map (lambda (c) (int-id c ds)) xs)))))]
+                                  [else (error 'interp "La operación sólo opera con números")])]
                   [(equal? f *) (match lst
                                   ['() (numV 0)]
-                                  [(cons (numV x) xs) (numV (apply * (map num-n (cons (num x) xs))))]
-                                  [(cons (num x) xs) (numV (apply * (map num-n (cons (num x) xs))))]
-                                  [else (error 'interp "La multiplicación sólo opera con números")])]
+                                  [(cons (id i) xs) (numV (apply * (map num-n (cons (cond
+                                                                                      [(number? (intV (lookup i ds))) (num (numV-n (lookup i ds)))]
+                                                                                      [else (error 'interp "La operación sólo opera con números")])
+                                                                                    (map (lambda (c) (int-id c ds)) xs)))))]
+                                  [(cons (num x) xs) (numV (apply * (map num-n (cons (num x) (map (lambda (c) (int-id c ds)) xs)))))]
+                                  [else (error 'interp "La operación sólo opera con números")])]
                   [(equal? f /) (match lst
                                   ['() (numV 0)]
-                                  [(cons (num x) xs) (numV (apply / (map num-n (cons (num x) xs))))]
-                                  [else (error 'interp "La división sólo opera con números")])]
+                                  [(cons (id i) xs) (numV (apply / (map num-n (cons (cond
+                                                                                      [(number? (intV (lookup i ds))) (num (numV-n (lookup i ds)))]
+                                                                                      [else (error 'interp "La operación sólo opera con números")]) (map (lambda (c) (int-id c ds)) xs)))))]
+                                  [(cons (num x) xs) (numV (apply / (map num-n (cons (num x) (map (lambda (c) (int-id c ds)) xs)))))]
+                                  [else (error 'interp "La operación sólo opera con números")])]
                   [(equal? f add1) (match lst
-                                     [(cons (numV x) '()) (numV (add1 x))]
+                                     [(cons (id i) '()) (cond
+                                                          [(number? (intV (lookup i ds))) (numV (add1 (numV-n (lookup i ds))))]
+                                                          [else (error 'interp "La operación opera con números")])]
                                      [(cons (num x) '()) (numV (add1 x))]
-                                     [else (error 'interp "La operación sucesor sólo acepta un número como parámetro")])]
+                                     [else (error 'interp "La operación opera con números")])]
                   [(equal? f sub1) (match lst
+                                     [(cons (id i) '()) (cond
+                                                          [(number? (intV (lookup i ds))) (numV (sub1 (numV-n (lookup i ds))))]
+                                                          [else (error 'interp "La operación opera con números")])]
                                      [(cons (num x) '()) (numV (sub1 x))]
-                                     [else (error 'interp "La operación predecesor sólo acepta un número como parámetro")])]
+                                     [else (error 'interp "La operación opera con números")])]
                   [(equal? f oR) (match lst
+                                   [(cons (id i) xs) (boolV (or (boolV-b (lookup i ds)) (bool-b (first (map (lambda (c) (int-id-bool c ds)) xs)))))]
+                                   [(cons (bool x) xs) (boolV (or x (bool-b (first (map (lambda (c) (int-id-bool c ds)) xs)))))]
                                    [(cons (bool x) (cons (bool y) '())) (boolV (or x y))]
                                    [else (error 'interp "La operación or sólo acepta booleanos como parámetros")])]
                   [(equal? f anD) (match lst
+                                    [(cons (id i) xs) (boolV (and (boolV-b (lookup i ds)) (bool-b (first (map (lambda (c) (int-id-bool c ds)) xs)))))]
+                                    [(cons (bool x) xs) (boolV (and x (bool-b (first (map (lambda (c) (int-id-bool c ds)) xs)))))]
                                     [(cons (bool x) (cons (bool y) '())) (boolV (and x y))]
                                     [else (error 'interp "La operación and sólo acepta booleanos como parámetros")])]
                   [(equal? f not) (match lst
+                                    [(cons (id i) '()) (boolV (not (boolV-b (lookup i ds))))]
                                     [(cons (bool x) '()) (boolV (not x))]
                                     [else (error 'interp "La operación not sólo acepta un booleano como parámetro")])]
                   [(equal? f zero?) (match lst
+                                      [(cons (id i) '()) (boolV (zero? (cond
+                                                                         [(number? (intV (lookup i ds))) (numV-n (lookup i ds))]
+                                                                         [else (error 'interp "La operación opera con números")])))]
                                       [(cons (num x) '()) (boolV (zero? x))]
-                                      [else (error 'interp "La operación zero? sólo acepta un número como parámetro")])]
+                                      [else (error 'interp "La operación opera con números")])]
                   [(equal? f num?) (match lst
+                                     [(cons (id i) '()) (boolV (num? (intV (lookup i ds))))]
                                      [(cons (num x) '()) (boolV (num? x))]
-                                     [else (error 'interp "La operación nu? sólo acepta un número como parámetro")])]
+                                     [else (error 'interp "La operación no reconoce lo solicitado")])]
                   [(equal? f bool?) (match lst
                                       [(cons (bool x) '()) (boolV (bool? x))]
                                       [else (error 'interp "La operación bool? sólo acepta un booleano como parámetro")])]
@@ -141,19 +181,6 @@
                                     (closure-env fun-val))))]))
 
 
-#|
-(local ([define fun-val (interp fun ds)])
-                      (interp (closure-body fun-val)
-                              (aSub (closure-param fun-val)
-                                    (interp args ds)
-                                    (closure-env fun-val))))
-
-(let ([fun-val (interp fun ds)])
-                      (interp (closure-body fun-val)
-                              (aSub (closure-param fun-val)
-                                    (interp args ds)
-                                    (closure-env fun-val))))
-|#
 
 ;; Concatena dos listas del tipo lisT
 ;; CFWBAE CFWBAE --> CFWBAE
@@ -189,6 +216,54 @@
     [(cons x '()) (interp x ds)]
     [(cons x xs) (cons (interp x ds) (list (interp-lst xs ds)))]))
 
+;; Busca en el ambiente un número y lo devuelve
+;; int-id :: CFWBAE DefrdSub --> (CFWBAE)
+(define (int-id sexp ds)
+  (match sexp
+    [(num n) sexp]
+    [(id x) (cond
+              [(number? (intV (lookup x ds))) (num (numV-n (lookup x ds)))]
+              [else (error 'interp "La operación sólo acepta números como parámetro")])]))
+
+;; Busca en el ambiente un booleano y lo devuelve
+;; int-id-bool :: CFWBAE DefrdSub --> (CFWBAE)
+(define (int-id-bool sexp ds)
+  (match sexp
+    [(bool n) sexp]
+    [(id x) (cond
+              [(bool? (intV (lookup x ds))) (bool (boolV-b (lookup x ds)))]
+              [else (error 'interp "La operación sólo acepta booleanos como parámetro")])]))
+
+;; Busca en el ambiente un caracter y lo devuelve
+;; int-id-char :: CFWBAE DefrdSub --> (CFWBAE)
+(define (int-id-char sexp ds)
+  (match sexp
+    [(chaR n) sexp]
+    [(id x) (chaR (charV-c (lookup x ds)))]))
+
+;; Busca en el ambiente una cadena y lo devuelve
+;; int-id-str :: CFWBAE DefrdSub --> (CFWBAE)
+(define (int-id-str sexp ds)
+  (match sexp
+    [(strinG n) sexp]
+    [(id x) (strinG (stringV-s (lookup x ds)))]))
+
+;; Busca en el ambiente una lista y lo devuelve
+;; int-id-lts :: CFWBAE DefrdSub --> (CFWBAE)
+(define (int-id-lts sexp ds)
+  (match sexp
+    [(lisT n) sexp]
+    [(id x) (lisT (map (lambda (x) (num (numV-n x)))(listV-l (lookup x ds))))]))
+
+;; Devuelve el parámetro de cada tipo de dato
+;; intV :: CFWBAE-Value --> any
+(define (intV expr)
+  (match expr
+    [(numV n) n]
+    [(boolV b) b]
+    [(charV c) c]
+    [(stringV s) s]
+    [(listV l) l]))
 
 (require racket/trace)
 (trace interp)
