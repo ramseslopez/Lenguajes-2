@@ -157,7 +157,9 @@
                                       [(cons (lisT x) '()) (boolV (list? x))]
                                       [else (error 'interp "La operación no reconoce lo solicitado")])]
                   [(equal? f empty?) (match lst
-                                       [(cons (lisT x) '()) (boolV (empty? x))]
+                                       [(cons (lisT x) '()) (boolV (empty? (cond
+                                                                             [(list? x) x]
+                                                                             [else (error 'interp "La operación sólo acepta listas como parámetro")])))]
                                        [else (error 'interp "La operación empty? sólo acepta una lista como parámetro")])]
                   [(equal? f cons) (match lst
                                      [(cons x (cons (id i) '())) (interp (lisT (cons x (lisT-l (int-id-lts (id i) ds)))) ds)]

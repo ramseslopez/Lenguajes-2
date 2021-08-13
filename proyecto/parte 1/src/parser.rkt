@@ -69,19 +69,19 @@
   (case (car sexp)
     [(add1) (cond
               [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+              [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
               [else (opS add1 (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(sub1) (cond
               [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+              [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
               [else (opS sub1 (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(modulo) (cond
                 [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-                [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+                [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
                 [else (opS modulo (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(expt) (cond
               [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+              [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
               [else (opS expt (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(+) (cond
            [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
@@ -102,11 +102,11 @@
   (case (car sexp)
     [(if) (cond
             [(<= (length sexp) 3) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-            [(> (length sexp) 4) (error 'parse "Aridad incorrecta")]
+            [(> (length sexp) 4) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
             [else (iFS (parse (second sexp)) (parse (third sexp)) (parse (fourth sexp)))])]
     [(if0) (cond
              [(<= (length sexp) 3) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 4) (error 'parse "Aridad incorrecta")]
+             [(> (length sexp) 4) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
              [else (iF0 (parse (second sexp)) (parse (third sexp)) (parse (fourth sexp)))])]
     [(cond) (cond
               [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
@@ -118,7 +118,7 @@
   (case (car sexp)
     [(string-length) (cond
                        [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-                       [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+                       [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
                        [else (opS string-length (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(string-append) (cond
                        [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
@@ -130,22 +130,22 @@
   (case (car sexp)
     [(cons) (cond
               [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+              [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
               [else (opS cons (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(car) (cond
              [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+             [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
              [else (opS car (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(cdr) (cond
              [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+             [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
              [else (opS cdr (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(append) (cond
                 [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
                 [else (opS append (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(length) (cond
                 [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-                [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+                [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
                 [else (opS length (map (lambda (x) (parse x)) (cdr sexp)))])]))
 
 ;; Parsea una lista de booleanos s-expression a un ASA en SCFWBAE
@@ -154,15 +154,15 @@
   (case (car sexp)
     [(or) (cond
             [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-            [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+            [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
             [else (opS oR (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(and) (cond
              [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+             [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
              [else (opS anD (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(not) (cond
              [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+             [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
              [else (opS not (map (lambda (x) (parse x)) (cdr sexp)))])]))
 
 ;; Parsea una lista de predicados s-expression a un ASA en SCFWBAE
@@ -171,31 +171,31 @@
   (case (car sexp)
     [(zero?) (cond
                [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-               [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+               [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
                [else (opS zero? (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(num?) (cond
               [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+              [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
               [else (opS num? (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(char?) (cond
                [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-               [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+               [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
                [else (opS char? (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(bool?) (cond
                [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-               [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+               [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
                [else (opS bool? (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(string?) (cond
                  [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-                 [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+                 [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
                  [else (opS string? (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(list?) (cond
                [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-               [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+               [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
                [else (opS list? (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(empty?) (cond
                 [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-                [(> (length sexp) 2) (error 'parse "Aridad incorrecta")]
+                [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
                 [else (opS empty? (map (lambda (x) (parse x)) (cdr sexp)))])]))
 
 ;; Parsea una lista de ordenes s-expression a un ASA en SCFWBAE
@@ -204,19 +204,19 @@
   (case (car sexp)
     [(<) (cond
            [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-           [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+           [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
            [else (opS < (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(<=) (cond
             [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-            [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+            [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
             [else (opS <= (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(>=) (cond
             [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-            [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+            [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
             [else (opS >= (map (lambda (x) (parse x)) (cdr sexp)))])]
     [(>) (cond
            [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-           [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+           [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
            [else (opS > (map (lambda (x) (parse x)) (cdr sexp)))])]))
 
 ;; Parsea una lista de funciones s-expression a un ASA en SCFWBAE
@@ -225,21 +225,21 @@
   (case (car sexp)
     [(fun) (cond
              [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+             [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
              [else (funS (second sexp) (parse (third sexp)))])]
     [(app) (cond
              [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+             [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
              [else (appS (parse (second sexp)) (map (lambda (x) (parse x)) (third sexp)))])]
     [(with) (cond
               [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+              [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
               [(<= (length (second sexp)) 1) (error 'parse "El identificador no posee un valor")]
               [(> (length (second sexp)) 2) (error 'parse "El identificador sólo puede recibir un valor")]
               [else (withS (list (binding (first (second sexp))  (parse (second (second sexp))))) (parse (third sexp)))])]
     [(with*) (cond
                [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-               [(> (length sexp) 3) (error 'parse "Aridad incorrecta")]
+               [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
                [else (withS* (map (lambda (x) (binds x)) (second sexp)) (parse (third sexp)))])]))
 
 
