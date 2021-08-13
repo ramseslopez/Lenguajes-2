@@ -177,7 +177,15 @@
                                     [else (error 'interp "La operación sólo acepta listas como parámetro")])]
                   [(equal? f append) (match lst
                                        [(cons x '()) (interp x ds)]
+                                       [(cons (id i) '()) (cond
+                                                            [(list? (intV (lookup i ds))) (lookup i ds)]
+                                                            [else (error 'interp "La operación sólo acepta listas como parámetro")])]
+                                       [(cons (id i) ys) (interp (op append (cons (cond
+                                                                                    [(list? (intV (lookup i ds))) (int-id-lts (id i) ds)]
+                                                                                    [else (error 'interp "La operación sólo acepta listas como parámetro")])
+                                                                                  (map (lambda (x) (int-id-lts x ds)) ys))) ds)]
                                        [(cons (lisT x) (cons (lisT y) ys)) (interp (op append (cons (appT (lisT x) (lisT y)) ys)) ds)]
+                                       [(cons (lisT x) xs) (interp (op append (cons (lisT x) (map (lambda (x) (int-id-lts x ds)) xs))) ds)]
                                        [else (error 'interp "La operación sólo acepta listas como parámetro")])]
                   [(equal? f length) (match lst
                                        ['() (numV 0)]
@@ -192,14 +200,12 @@
                                               [(cons x '()) (interp x ds)]
                                               [(cons (strinG x) '()) (interp (strinG x) ds)]
                                               [(cons (id i) '()) (cond
-                                                                   [(list? (intV (lookup i ds))) (lookup i ds)]
+                                                                   [(string? (intV (lookup i ds))) (lookup i ds)]
                                                                    [else (error 'interp "La operación sólo acepta cadenas como parámatro")])]
                                               [(cons (id i) xs) (interp (op string-append (cons (strinG (cond
                                                                                                           [(string? (intV (lookup i ds))) (stringV-s (lookup i ds))]
                                                                                                           [else "La operación sólo acepta cadenas como paráetro"]))
                                                                                                 (map (lambda(x) (int-id-str x ds)) xs))) ds)]
-                                            
-                                              ;[(cons (strinG i) xs) (interp (op string-append (cons (strinG i) (interp xs ds))) ds)]
                                               [(cons (strinG x) (cons (strinG y) ys)) (interp (op string-append (cons (strinG (string-append x y)) (map (lambda(x) (int-id-str x ds)) ys))) ds)]
                                               [(cons (strinG i) xs) (interp (op string-append (cons (strinG i) (map (lambda (x) (int-id-str x ds)) xs))) ds)]
                                               [else (error 'interp "La operación sólo acepta cadenas como parámetro")])]
@@ -295,6 +301,7 @@
               [(list? (intV (lookup x ds))) (lisT (map (lambda (x) (cf (intV x))) (listV-l (lookup x ds))))]
               [else (error 'interp "La operación sólo acepta listas como parámetro")])]))
 
+;; Tranforma un elemento a uno de tipo CFWBAE
 ;; cf :: any --> CFWBAE
 (define (cf exp)
   (cond
@@ -304,7 +311,8 @@
     [(string? exp) (strinG exp)]
     [(list? exp) (lisT (map (lambda (x) (cf x)) exp))]))
 
-;; cf :: any --> CFWBAE-Value
+;; Transforma un elemento a uno de tipo CFWBAE-Value
+;; cv :: any --> CFWBAE-Value
 (define (cv exp)
   (cond
     [(number? exp) (numV exp)]
