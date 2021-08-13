@@ -236,7 +236,6 @@
               [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
               [(<= (length (second sexp)) 1) (error 'parse "El identificador no posee un valor")]
               [(> (length (second sexp)) 2) (error 'parse "El identificador sólo puede recibir un valor")]
-              ;;[else (withS (list (binding (first (second sexp)) (parse (second (second sexp))))) (parse (third sexp)))])]
               [else (withS (list (binding (first (second sexp)) (parse (second (second sexp)))))
                            (cond
                              [(and (equal? (first (second sexp)) (first (third sexp)))
