@@ -258,7 +258,7 @@
   (match zs
     ['() '()]
     [(cons x '()) (interp x (repeat-id ds))]
-    [(cons x xs) (cons (interp x ds) (list (interp-lst xs (repeat-id ds))))]))
+    [(cons x xs) (cons (interp x ds) (interp-lst xs (repeat-id ds)))]))
 
 ;; Busca en el ambiente un número y lo devuelve
 ;; int-id :: CFWBAE DefrdSub --> (CFWBAE)

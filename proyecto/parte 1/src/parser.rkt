@@ -236,7 +236,13 @@
               [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
               [(<= (length (second sexp)) 1) (error 'parse "El identificador no posee un valor")]
               [(> (length (second sexp)) 2) (error 'parse "El identificador sólo puede recibir un valor")]
-              [else (withS (list (binding (first (second sexp))  (parse (second (second sexp))))) (parse (third sexp)))])]
+              ;;[else (withS (list (binding (first (second sexp)) (parse (second (second sexp))))) (parse (third sexp)))])]
+              [else (withS (list (binding (first (second sexp)) (parse (second (second sexp)))))
+                           (cond
+                             [(and (equal? (first (second sexp)) (first (third sexp)))
+                                   (equal? (first (second (second sexp))) 'fun))
+                              (appS (idS (first (second sexp))) (listS-l (parse (second (third sexp)))))]
+                             [else (parse (third sexp))]))])]
     [(with*) (cond
                [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
                [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
