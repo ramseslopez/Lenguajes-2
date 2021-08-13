@@ -382,12 +382,6 @@
     [(equal? (id-repeat ds) #f) ds]
     [else (error 'interp "Hay identificadores repetidos en el caché de sustituciones")]))
 
-(require racket/trace)
-(trace interp)
-;(interp (desugar (parse '{length {1 2 3 4 5}})) (mtSub))
+;;(require racket/trace)
+;;(trace interp)
 
-;(interp (op + '()) (mtSub))
-;(interp (iF (bool #f) (num 6) (num 8)) (mtSub))
-;(interp (op cons (list (num 4) (id 't))) (aSub 't (listV (list (charV #\b) (boolV #t))) (mtSub)))
-;(interp (op anD (list (id 'p) (bool #f))) (aSub 'p (boolV #t) (mtSub)))
-;(interp (op string-append (list (strinG "pe") (id 'v))) (aSub 'v (stringV "lo") (mtSub)))
