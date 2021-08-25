@@ -1,4 +1,5 @@
 #lang plai
+
 ;;Data-type que define al tipo de dato Type
 (define-type Type
   [numberT]
@@ -36,7 +37,7 @@
   [boolS   (b boolean?)]
   [charS   (c char?)]
   [stringS (s string?)]
-  [listS   (l SRCFWBAE-Typed?)]
+  [listS   (l (listof SRCFWBAE-Typed?))]
   [iF0     (condicion SRCFWBAE-Typed?) (then SRCFWBAE-Typed?) (else SRCFWBAE-Typed?)]
   [iFS     (condicion SRCFWBAE-Typed?) (then SRCFWBAE-Typed?) (else SRCFWBAE-Typed?)]
   [opS     (f procedure?) (args (listof SRCFWBAE-Typed?))]
