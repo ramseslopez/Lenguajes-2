@@ -17,7 +17,7 @@
 (define-type Param
   [param (param symbol?) (tipo Type?)])
 
-;; Definición del tipo Binding
+;; Definición del tipo BindingS
 (define-type BindingS
   [bindingS (id symbol?) (type Type?) (value SRCFWBAE-Typed?)])
 
@@ -58,7 +58,7 @@
   [bool   (b boolean?)]
   [chaR   (c char?)]
   [strinG (s string?)]
-  [lisT   (l RCFWBAE-Typed?)]
+  [lisT   (l (listof RCFWBAE-Typed?))]
   [iF     (condicion RCFWBAE-Typed?) (then RCFWBAE-Typed?) (else RCFWBAE-Typed?)]
   [op     (f procedure?) (args (listof RCFWBAE-Typed?))]
   [rec    (binds (listof binding?)) (body RCFWBAE-Typed?)]
@@ -83,4 +83,10 @@
   [boolV    (b boolean?)]
   [charV    (c char?)]
   [stringV  (s string?)]
-  [listV    (l RCFWBAE-Value?)])
+  [listV    (l (listof RCFWBAE-Value?))])
+
+;; Definición del procedimiento oR
+(define oR (lambda (x) (or x x)))
+
+;; Definición del procedimiento anD
+(define anD (lambda (x) (and x x)))
