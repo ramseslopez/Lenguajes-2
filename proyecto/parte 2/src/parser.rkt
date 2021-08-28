@@ -61,6 +61,7 @@
                    [(app) (parse-fun sexp)]
                    [(with) (parse-fun sexp)]
                    [(with*) (parse-fun sexp)]
+                   [(rec) (parse-rec sexp)]
                    [else (listS (map (lambda (x) (parse x)) sexp))])]))
 
 ;; Parsea una lista de números s-expression a un ASA en SCFWBAE
@@ -237,22 +238,58 @@
               [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
               [(<= (length (second sexp)) 1) (error 'parse "El identificador no posee un valor")]
               [(> (length (second sexp)) 2) (error 'parse "El identificador sólo puede recibir un valor")]
-              [else (withS (list (bindingS (first (first (second sexp))) (type (third (first (second sexp)))) (parse (second (second sexp)))))
-                           (cond
-                             [(and (equal? (first (second sexp)) (first (third sexp)))
-                                   (equal? (first (second (second sexp))) 'fun))
-                              (appS (idS (first (second sexp))) (listS-l (parse (second (third sexp)))))]
-                             [else (parse (third sexp))]))])]
+              [else (withs sexp)])]
     [(with*) (cond
                [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
                [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
                [else (withS* (map (lambda (x) (binds x)) (second sexp)) (parse (third sexp)))])]))
 
+(define (fst xs)
+  (cond
+    [(empty? xs) empty]
+    [(symbol? xs) xs]
+    [else (car xs)]))
+
+(define (thd xs)
+  (cond
+    [(empty? xs) empty]
+    [(symbol? xs) xs]
+    [else (third xs)]))
+
+(define (withs sexp)
+  (case (car sexp)
+    [(with) (cond
+              [(symbol? (first (second sexp))) (cond
+                                                 [(and (equal? (first (second sexp))
+                                                          (first (third sexp)))
+                                                       (equal? (first (second (second sexp))) 'fun))
+                                                  (withS (list (bindingS (first (second sexp)) (funT (map (lambda (x) (type x)) (no-arrows (fourth (second (second sexp))))))
+                                                                   (parse (second (second sexp)))))
+                                                         (appS (idS (first (second sexp))) (listS-l (parse (second (third sexp))))))])
+                        ]
+              [else (withS
+                     (list (bindingS (fst (first (second sexp)))
+                                     (type (thd (first (second sexp))))
+                                     (parse (second (second sexp)))))
+                           (cond
+                             [(and (equal? (first (second sexp)) (first (third sexp)))
+                                   (equal? (first (second (second sexp))) 'fun))
+                              (appS (idS (first (second sexp))) (listS-l (parse (second (third sexp)))))]
+                             [else (parse (third sexp))]))])]))
+
+; (funS (list (param 'x (numberT))) (funT (list (numberT) (numberT))) (opS #<procedure:*> (list (idS 'x) (numS 2))))
+
 ;; Parsea una lista de s-expression a un ASA
 ;; parse-rec :: s-expression --> SRCFWBAE
 (define (parse-rec sexp)
   (case (car sexp)
-    [(rec) (recS (list (bindingS (first (first (second sexp))) (map (lambda (x) (type x)) (no-arrows (third (first (second sexp))))) (parse (fourth (first (second sexp))))) (binding (first (second (second sexp))) (type (third (second (second sexp)))) (parse (fourth(second (second sexp)))))) (parse (third sexp)))]))
+    [(rec) (recS (list (bindingS (first (first (second sexp)))
+                                 (funT (map (lambda (x) (type x)) (no-arrows (third (first (second sexp))))))
+                                 (parse (fourth (first (second sexp)))))
+                       (bindingS (first (second (second sexp)))
+                                (type (third (second (second sexp))))
+                                (parse (fourth(second (second sexp))))))
+                 (parse (third sexp)))]))
 
 ;; Parsea una condicional s-expression a otra en SCFWBAE
 ;; cnds :: s-expression --> SRCFWBAE
@@ -280,9 +317,10 @@
 ;; Transforma a lista de parámetros
 ;; params-list :: (listof s-expressions) --> (listof Param)
 (define (params-list lst)
-  (cond
-    [(empty? lst) empty]
-    [else (cons (params (car lst)) (params-list (cdr lst)))]))
+  (match lst
+    ['() empty]
+    ;[(cons x '()) (params x)]
+    [(cons x xs) (cons (params x) (params-list xs))]))
 
 ;; Obtiene los tipos de una lista de parámetros
 ;; get-types :: (listof Param) --> (listof Type)
@@ -320,3 +358,33 @@
     [(cons x xs) (cond
                    [(equal? x '->) (no-arrows xs)]
                    [else (cons x (no-arrows xs))])]))
+
+#|(define (busca e lst)
+  (cond
+    [(empty? lst) #f]
+    [(list? (car lst)) (cond
+                         [(and (equal? (list? (car lst)) #t) (equal? (busca e (car lst)) #f) (equal? (empty? (car lst)) #f)) (busca e (car (car lst)))]
+                         [else #t])]
+    [(equal? e (car lst)) #t]
+    [else (busca e (cdr lst))]))
+
+(define (sym a b)
+  (cond
+    [(equal? (sym2str a) (sym2str b)) #t]
+    [else #f]))
+
+(define (sym2str s)
+  (symbol->string s))|#
+
+(define (2list lst)
+  (match lst
+    ['() empty]
+    ;[]
+    [(cons x xs) (cond
+                   [(list? x) (cond
+                                [(empty? xs) (2list x)]
+                                [else (cons (2list x) (2list xs))])]
+                   [else (cons x (2list xs))])]))
+
+;(require racket/trace)
+;(trace parse)

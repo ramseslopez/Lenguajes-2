@@ -13,7 +13,10 @@
     [(boolS b) (booleanT)]
     [(charS c) (charT)]
     [(stringS s) (stringT)]
-    [(listS lst) (map (lambda (x) (typeof x context)) lst)]))
+    [(listS lst) (map (lambda (x) (typeof x context)) lst)]
+    [(opS f lst) (cond
+                   [(numberT? (typeof (car lst) context)) (cons (numberT) (typeof (cdr lst) context))]
+                   [else 1])]))
 
 ;; Busca el tipo correspondiente de un identificador
 ;; find-type :: SRCFWBAE Type-Context --> Type 
