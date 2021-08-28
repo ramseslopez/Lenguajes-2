@@ -15,8 +15,18 @@
     [(stringS s) (stringT)]
     [(listS lst) (map (lambda (x) (typeof x context)) lst)]
     [(opS f lst) (cond
-                   [(numberT? (typeof (car lst) context)) (cons (numberT) (typeof (cdr lst) context))]
-                   [else 1])]))
+                   [(equal? f +) (cond
+                                   [(andmap numS? lst) (map (lambda (x) (typeof x context)) lst)]
+                                   [else (error 'typeof "tipos incorrectos")])]
+                   [(equal? f -) (cond
+                                   [(andmap numS? lst) (map (lambda (x) (typeof x context)) lst)]
+                                   [else (error 'typeof "tipos incorrectos")])]
+                   [(equal? f *) (cond
+                                   [(andmap numS? lst) (map (lambda (x) (typeof x context)) lst)]
+                                   [else (error 'typeof "tipos incorrectos")])]
+                   [(equal? f /) (cond
+                                   [(andmap numS? lst) (map (lambda (x) (typeof x context)) lst)]
+                                   [else (error 'typeof "tipos incorrectos")])])]))
 
 ;; Busca el tipo correspondiente de un identificador
 ;; find-type :: SRCFWBAE Type-Context --> Type 
