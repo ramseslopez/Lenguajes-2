@@ -2,6 +2,12 @@
 
 (require (file "./grammars.rkt"))
 
+;; Definición del procedimiento oR
+(define oR (lambda (x) (or x x)))
+
+;; Definición del procedimiento anD
+(define anD (lambda (x) (and x x)))
+
 ;; Toma una lista de números, símbolos o listas
 ;; y la traduce a un árbol de sintaxis abstracta SCFWBAE
 ;; A ::=  <number>
@@ -16,6 +22,7 @@
     [(boolean? sexp) (boolS sexp)]
     [(char? sexp) (charS sexp)]
     [(string? sexp) (stringS sexp)]
+    [(empty? sexp) (error 'parse "Las expresiones vacías no son válidas")]
     [(list? sexp) (parse-aux sexp)]))
 
 ;; Parsea una lista s-expression a un ASA en SCFWBAE
@@ -24,93 +31,92 @@
   (match sexp
     ['() (void sexp)]
     [(cons x xs) (case (car sexp)
-                   [(lst) (lsts sexp)]
-                   [(if) (parse-if sexp)]
-                   [(if0) (parse-if sexp)]
-                   [(cond) (parse-if sexp)]
-                   [(add1) (parse-num sexp)]
-                   [(sub1) (parse-num sexp)]
-                   [(modulo) (parse-num sexp)]
-                   [(expt) (parse-num sexp)]
-                   [(or) (parse-bool sexp)]
-                   [(and) (parse-bool sexp)]
-                   ((not) (parse-bool sexp))
-                   [(<) (parse-ord sexp)]
-                   [(<=) (parse-ord sexp)]
-                   [(>=) (parse-ord sexp)]
-                   [(>) (parse-ord sexp)]
-                   [(zero?) (parse-pred sexp)]
-                   [(num?) (parse-pred sexp)]
-                   [(char?) (parse-pred sexp)]
-                   [(bool?) (parse-pred sexp)]
-                   [(string?) (parse-pred sexp)]
-                   [(list?) (parse-pred sexp)]
-                   [(empty?) (parse-pred sexp)]
-                   [(+) (parse-num sexp)]
-                   [(-) (parse-num sexp)]
-                   [(*) (parse-num sexp)]
-                   [(/) (parse-num sexp)]
-                   [(cons) (parse-list sexp)]
-                   [(car) (parse-list sexp)]
-                   [(cdr) (parse-list sexp)]
-                   [(append) (parse-list sexp)]
-                   [(length) (parse-list sexp)]
-                   [(string-length) (parse-str sexp)]
-                   [(string-append) (parse-str sexp)]
-                   [(fun) (parse-fun sexp)]
-                   [(app) (parse-fun sexp)]
-                   [(with) (parse-fun sexp)]
-                   [(with*) (parse-fun sexp)]
-                   [else (listS (map (lambda (x) (parse x)) sexp))])]))
+									 [(sub1 add1 not length car cdr string-length) (if (equal? (length sexp) 2)
+																						(opS (quitar-lista (car sexp)) (list (parse (second sexp))))
+																						(error 'parse "La aridad debe ser de 1")
+																						)]
+									 [(num? char? bool? string? list? empty?) (if (equal? (length sexp) 2)
+																															(opS (quitar-lista (car sexp)) (map parse (cdr sexp)))
+																															(error 'parse "La aridad debe ser de 1"))]
+									 [(modulo expt) (if (equal? (length sexp) 3)
+																		(opS (quitar-lista (car sexp)) (list (parse (second sexp)) (parse (third sexp))))
+																		(error 'parse "La aridad debe ser de 2")
+																		)]
+									 [(cons) (if (equal? (length sexp) 3)
+														 (opS (quitar-lista (car sexp)) (map parse (cdr sexp)))
+														 (error 'parse "La aridad debe ser de 2")
+														 )]
+									 [(+ - * / < <= = > >= append string-append) (opS (quitar-lista (car sexp)) (map parse (cdr sexp)))]
+									 [(and) (opS anD (map parse (cdr sexp)))]
+									 [(or) (opS oR (map parse (cdr sexp)))]
+                   [(lst) (listS (map parse (cdr sexp)))]
+                   [(if) (if (equal? (length sexp) 4)
+															 (iFS (parse (cadr sexp)) (parse (caddr sexp)) (parse (cadddr sexp)))
+															 (error 'parse "La aridad debe ser de 3")
+															 )]
+                   [(if0) (if (equal? (length sexp) 4)
+															 (iF0 (parse (cadr sexp)) (parse (caddr sexp)) (parse (cadddr sexp)))
+															 (error 'parse "La aridad debe ser de 3")
+															 )]
+									 [(cond) (if (<= (length sexp) 1)
+														 (error 'parse "La aridad debe ser mayor a 1")
+														 (if (check-else sexp)
+															 (condS (map (lambda x (aux-cond (car x))) (cdr sexp)))
+															 (error 'parse "Debe haber un else al final del cond"))
+														 )]
+									 [(with) (withS (with-aux (second sexp)) (parse (third sexp)))]
+									 [(with*) (withS* (with-aux (second sexp)) (parse (third sexp)))]
+                   [(fun) (funS	(second sexp) (parse (third sexp)))]
+									 [(app) (appS (parse (second sexp)) (map parse (third sexp)))]
+                   [else (listS (map parse sexp))])]))
 
-;; Parsea una lista de números s-expression a un ASA en SCFWBAE
-;; parse-num :: s-expression --> SCFWBAE
-(define (parse-num sexp)
-  (case (car sexp)
-    [(add1) (cond
-              [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-              [else (opS add1 (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(sub1) (cond
-              [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-              [else (opS sub1 (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(modulo) (cond
-                [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-                [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-                [else (opS modulo (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(expt) (cond
-              [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-              [else (opS expt (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(+) (cond
-           [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-           [else (opS + (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(-) (cond
-           [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-           [else (opS - (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(*) (cond
-           [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-           [else (opS * (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(/) (cond
-           [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-           [else (opS / (map (lambda (x) (parse x)) (cdr sexp)))])]))
+;; Función que quita la lista y devuelve el operador
+(define (quitar-lista car-sexp)
+	(case car-sexp
+		[(+) +]
+		[(-) -]
+		[(*) *]
+		[(/) /]
+		[(<) <]
+		[(<=) <=]
+		[(=) =]
+		[(>) >]
+		[(>=) >=]
+		[(sub1) sub1]
+		[(add1) add1]
+		[(not) not]
+		[(length) length]
+		[(car) car]
+		[(cdr) cdr]
+		[(string-length) string-length]
+		[(num?) num?]
+		[(char?) char?]
+		[(bool?) bool?]
+		[(string?) string?]
+		[(list?) list?]
+		[(empty?) empty?]
+		[(modulo) modulo]
+		[(expt) expt]
+		[(cons) cons]
+		[(append) append]
+		[(string-append) string-append]
+		))
 
-;; Parsea una lista de if's s-expression a un ASA en SCFWBAE
-;; parse-if :: s-expression --> SCFWBAE
-(define (parse-if sexp)
-  (case (car sexp)
-    [(if) (cond
-            [(<= (length sexp) 3) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-            [(> (length sexp) 4) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-            [else (iFS (parse (second sexp)) (parse (third sexp)) (parse (fourth sexp)))])]
-    [(if0) (cond
-             [(<= (length sexp) 3) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 4) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-             [else (iF0 (parse (second sexp)) (parse (third sexp)) (parse (fourth sexp)))])]
-    [(cond) (cond
-              [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [else (cnds sexp)])]))
+;; Función auxiliar que parsea un condicional hasta encontrar 
+;; la sentencia `else`
+(define (aux-cond sexp)
+	(case (car sexp)
+		[(else) (else-cond (parse (second sexp)))]
+		[else (condition (parse (car sexp))
+										 (parse (second sexp))
+										 )]
+		))
+
+;; Función auxiliar que parsea lista de bindings
+(define (with-aux bindings)
+	(map (lambda (b)
+			 (binding (first b) 
+								(parse (cadr b)))) bindings))
 
 ;; Parsea una lista de listass-expression a un ASA en SCFWBAE
 ;; parse-str :: s-expression --> SCFWBAE
@@ -124,157 +130,7 @@
                        [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
                        [else (opS string-append (map (lambda (x) (parse x)) (cdr sexp)))])]))
 
-;; Parsea una lista de listass-expression a un ASA en SCFWBAE
-;; parse-list :: s-expression --> SCFWBAE
-(define (parse-list sexp)
-  (case (car sexp)
-    [(cons) (cond
-              [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-              [else (opS cons (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(car) (cond
-             [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-             [else (opS car (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(cdr) (cond
-             [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-             [else (opS cdr (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(append) (cond
-                [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-                [else (opS append (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(length) (cond
-                [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-                [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-                [else (opS length (map (lambda (x) (parse x)) (cdr sexp)))])]))
+;; Checa si el último elemento de un cond es un else
+(define (check-else sexp)
+	(equal? (car (last sexp)) 'else))
 
-;; Parsea una lista de booleanos s-expression a un ASA en SCFWBAE
-;; parse-bool :: s-expression --> SCFWBAE
-(define (parse-bool sexp)
-  (case (car sexp)
-    [(or) (cond
-            [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-            [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-            [else (opS oR (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(and) (cond
-             [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-             [else (opS anD (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(not) (cond
-             [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-             [else (opS not (map (lambda (x) (parse x)) (cdr sexp)))])]))
-
-;; Parsea una lista de predicados s-expression a un ASA en SCFWBAE
-;; parse-bool :: s-expression --> SCFWBAE
-(define (parse-pred sexp)
-  (case (car sexp)
-    [(zero?) (cond
-               [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-               [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-               [else (opS zero? (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(num?) (cond
-              [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-              [else (opS num? (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(char?) (cond
-               [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-               [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-               [else (opS char? (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(bool?) (cond
-               [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-               [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-               [else (opS bool? (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(string?) (cond
-                 [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-                 [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-                 [else (opS string? (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(list?) (cond
-               [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-               [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-               [else (opS list? (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(empty?) (cond
-                [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-                [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-                [else (opS empty? (map (lambda (x) (parse x)) (cdr sexp)))])]))
-
-;; Parsea una lista de ordenes s-expression a un ASA en SCFWBAE
-;; parse-bool :: s-expression --> SCFWBAE
-(define (parse-ord sexp)
-  (case (car sexp)
-    [(<) (cond
-           [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-           [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-           [else (opS < (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(<=) (cond
-            [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-            [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-            [else (opS <= (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(>=) (cond
-            [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-            [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-            [else (opS >= (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(>) (cond
-           [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-           [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-           [else (opS > (map (lambda (x) (parse x)) (cdr sexp)))])]))
-
-;; Parsea una lista de funciones s-expression a un ASA en SCFWBAE
-;; parse-bool :: s-expression --> SCFWBAE
-(define (parse-fun sexp)
-  (case (car sexp)
-    [(fun) (cond
-             [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-             [else (funS (second sexp) (parse (third sexp)))])]
-    [(app) (cond
-             [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-             [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-             [else (appS (parse (second sexp)) (map (lambda (x) (parse x)) (third sexp)))])]
-    [(with) (cond
-              [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-              [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-              [(<= (length (second sexp)) 1) (error 'parse "El identificador no posee un valor")]
-              [(> (length (second sexp)) 2) (error 'parse "El identificador sólo puede recibir un valor")]
-              [else (withS (list (binding (first (second sexp)) (parse (second (second sexp)))))
-                           (cond
-                             [(and (equal? (first (second sexp)) (first (third sexp)))
-                                   (equal? (first (second (second sexp))) 'fun))
-                              (appS (idS (first (second sexp))) (listS-l (parse (second (third sexp)))))]
-                             [else (parse (third sexp))]))])]
-    [(with*) (cond
-               [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-               [(> (length sexp) 3) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-               [else (withS* (map (lambda (x) (binds x)) (second sexp)) (parse (third sexp)))])]))
-
-
-
-;; Parsea una condicional s-expression a otra en SCFWBAE
-;; cnds :: s-expression --> SCFWBAE
-(define (cnds sexp)
-  (case (car sexp)
-    [(cond) (condS (append (map (lambda (x)
-                                  (condition (parse (first x)) (parse (second x)))) (no-last (cdr sexp)))
-                           (list (else-cond (parse (second (last sexp)))))))]))
-
-;; Elimina el último elemento de una lista
-;; no-last :: s-expression --> s-expression
-(define (no-last sexp)
-  (reverse (cdr (reverse sexp))))
-
-;; Transforma de s-expression a Binding
-;; binds :: s-expression --> Binding
-(define (binds sexp)
-  (binding (first sexp) (parse (second sexp))))
-
-;; Parsea una lista a una lista con azúcar
-;; lsts :: s-expression --> SCFWBAE
-(define (lsts sexp)
-  (case (car sexp)
-    [(lst) (listS (map (lambda (x) (parse x)) (cdr sexp)))]))
-
-;; Verifica si una lista es vacía y la parsea
-;; void :: s-expression --> SCFWBAE
-(define (void sexp)
-  (cond
-    ['() (listS '())]))
