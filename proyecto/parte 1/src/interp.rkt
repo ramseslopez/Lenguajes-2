@@ -33,12 +33,11 @@
                          [(equal? cnd (bool #f)) (interp els ds)]
                          [else (interp (iF (bool (boolV-b (interp cnd ds))) then els) ds)])]
     [(op f lst) (let* ([a (map (lambda (x) (cond
-                                                                [(num? x) (num-n x)]
-                                                                [(bool? x) (bool-b x)]
-                                                                [(chaR? x) (chaR-c x)]
-                                                                [(strinG? x) (strinG-s x)]
-                                                                [(lisT? x) (map (lambda (y) (cond
-                                                                                                              [(num? y) (num-n y)])) (lisT-l x))])) lst)]
+                                             [(numV? (interp x ds)) (numV-n (interp x ds))]
+                                             [(boolV? (interp x ds)) (boolV-b (interp x ds))]
+                                             [(charV? (interp x ds)) (charV-c (interp x ds))]
+                                             [(stringV? (interp x ds)) (stringV-s (interp x ds))]
+                                             [(listV? (interp x ds)) (map (lambda (y) (get-param y)) (listV-l (interp x ds)))])) lst)]
                                 [b (apply f a)])
                               (cond
                                 [(number? b) (numV b)]
@@ -50,10 +49,15 @@
     [(app fun args) (let ([fun-val (interp fun ds)])
                       (interp (closure-body fun-val)
                               (aSub (first (closure-param fun-val))
-                                    (interp-env args ds)
+                                    (first (interp-env args ds))
                                     (closure-env fun-val))))]))
 
 
+
+(define (toma-args lst)
+  (match lst
+    ['() '()]
+    [(cons x xs) 3]))
 
 ;; Concatena dos listas del tipo lisT
 ;; CFWBAE CFWBAE --> CFWBAE
@@ -86,8 +90,7 @@
 (define (interp-env zs ds)
   (match zs
     ['() '()]
-    [(cons x '()) (interp x (repeat-id ds))]
-    [(cons x xs) (cons (interp x ds) (interp-env xs (repeat-id ds)))]))
+    [(cons x xs) (cons (interp x ds) (interp-env xs ds))]))
 
 ;; Busca en el ambiente un número y lo devuelve
 ;; get-num :: CFWBAE DefrdSub --> CFWBAE
@@ -196,5 +199,12 @@
     [(equal? (id-repeat ds) #f) ds]
     [else (error 'interp "Hay identificadores repetidos en el caché de sustituciones")]))
 
-(require racket/trace)
-(trace interp)
+;(require racket/trace)
+;(trace interp)
+;(trace interp-env)
+;(interp (desugar (parse '{with [(f (fun (x) (+ x 2)))] {f (n)}})) (aSub 'n (numV 3) (mtSub)))
+;(interp (desugar (parse '{+ 4 x})) (aSub 'x (numV 4) (mtSub)))
+;(interp (op cons (list (num 3) (lisT (list (bool #f) (chaR #\c))))) (mtSub))
+;(interp (desugar (parse '{with [(f (fun (x) (+ x x))) (xs (lst 2 3))] {cons 2 (lst 4 5)}})) (mtSub))
+;(interp-env (list (num 4) (num 3)) (mtSub))
+;(interp (desugar (parse '{(fun (x y) (+ x y)) (3 4)})) (mtSub))
