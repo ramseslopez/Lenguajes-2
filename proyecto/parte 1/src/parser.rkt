@@ -99,6 +99,7 @@
 		[(string?) string?]
 		[(list?) list?]
 		[(empty?) empty?]
+		[(zero?) zero?]
 		[(modulo) modulo]
 		[(expt) expt]
 		[(cons) cons]
