@@ -35,7 +35,7 @@
 																						(opS (quitar-lista (car sexp)) (list (parse (second sexp))))
 																						(error 'parse "La aridad debe ser de 1")
 																						)]
-									 [(num? char? bool? string? list? empty?) (if (equal? (length sexp) 2)
+									 [(num? char? bool? string? list? empty? zero?) (if (equal? (length sexp) 2)
 																															(opS (quitar-lista (car sexp)) (map parse (cdr sexp)))
 																															(error 'parse "La aridad debe ser de 1"))]
 									 [(modulo expt) (if (equal? (length sexp) 3)
@@ -66,9 +66,13 @@
 														 )]
 									 [(with) (withS (with-aux (second sexp)) (parse (third sexp)))]
 									 [(with*) (withS* (with-aux (second sexp)) (parse (third sexp)))]
-                   [(fun) (funS	(second sexp) (parse (third sexp)))]
-									 [(app) (appS (parse (second sexp)) (map parse (third sexp)))]
-                   [else (listS (map parse sexp))])]))
+                   [(fun) (if (tiene-repetidos (second sexp))
+                                  (error 'parse "La función no puede tener parámetros repetidos")
+                                  (funS	(second sexp) (parse (third sexp))))]
+                   [(app) (appS (parse (second sexp)) (map parse (third sexp)))]
+                   [(lst) (listS (map parse sexp))]
+									 [else (appS (parse (first sexp)) (map parse (second sexp)))])]))
+                  ; [else (listS (map parse sexp))])]))
 
 ;; Función que quita la lista y devuelve el operador
 (define (quitar-lista car-sexp)
@@ -102,7 +106,7 @@
 		[(string-append) string-append]
 		))
 
-;; Función auxiliar que parsea un condicional hasta encontrar 
+;; Función auxiliar que parsea un condicional hasta encontrar
 ;; la sentencia `else`
 (define (aux-cond sexp)
 	(case (car sexp)
@@ -115,22 +119,13 @@
 ;; Función auxiliar que parsea lista de bindings
 (define (with-aux bindings)
 	(map (lambda (b)
-			 (binding (first b) 
+			 (binding (first b)
 								(parse (cadr b)))) bindings))
 
-;; Parsea una lista de listass-expression a un ASA en SCFWBAE
-;; parse-str :: s-expression --> SCFWBAE
-(define (parse-str sexp)
-  (case (car sexp)
-    [(string-length) (cond
-                       [(<= (length sexp) 1) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-                       [(> (length sexp) 2) (error 'parse "La cantidad de argumentos para realizar la operación solicitada es inválida")]
-                       [else (opS string-length (map (lambda (x) (parse x)) (cdr sexp)))])]
-    [(string-append) (cond
-                       [(<= (length sexp) 2) (error 'parse "No hay argumentos suficientes para realizar la operación")]
-                       [else (opS string-append (map (lambda (x) (parse x)) (cdr sexp)))])]))
+;; Función que verifica si una lista tiene elementos repetidos
+(define (tiene-repetidos lst)
+  (if (equal? (check-duplicates lst) #f) #f #t))
 
 ;; Checa si el último elemento de un cond es un else
 (define (check-else sexp)
 	(equal? (car (last sexp)) 'else))
-

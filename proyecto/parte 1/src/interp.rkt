@@ -22,221 +22,35 @@
 ;; interp :: CFWBAE DefrdSub --> CFWBAE-Value
 (define (interp expr ds)
   (match expr
-    [(id i) (lookup i (repeat-id ds))]
+    [(id i) (lookup i ds)]
     [(num n) (numV n)]
     [(bool b) (boolV b)]
     [(chaR chr) (charV chr)]
     [(strinG str) (stringV str)]
-    [(lisT xs) (listV (map (lambda (x) (interp x (repeat-id ds))) xs))]
+    [(lisT xs) (listV (map (lambda (x) (interp x ds)) xs))]
     [(iF cnd then els) (cond
-                         [(equal? cnd (bool #t)) (interp then (repeat-id ds))]
-                         [(equal? cnd (bool #f)) (interp els (repeat-id ds))]
-                         [else (iF (interp cnd (repeat-id ds)) then els)])]
-    [(op f lst) (cond
-                  [(equal? f <) (match lst
-                                  [(cons (id i) xs) (boolV (< (cond
-                                                                [(number? (get-param (lookup i (repeat-id ds)))) (numV-n (lookup i (repeat-id ds)))]
-                                                                [else (error 'interp "La operación sólo acepta números como parámetro")])
-                                                              (num-n (first (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                  [(cons (num x) xs) (boolV (< x (num-n (first (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                  [(cons (num x) (cons (num y) '())) (boolV (< x y))]
-                                  [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                  [(equal? f <=) (match lst
-                                   [(cons (id i) xs) (boolV (<= (cond
-                                                                  [(number? (get-param (lookup i (repeat-id ds)))) (numV-n (lookup i (repeat-id ds)))]
-                                                                  [else (error 'interp "La operación sólo acepta números como parámetro")])
-                                                                (num-n (first (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                   [(cons (num x) xs) (boolV (<= x (num-n (first (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                   [(cons (num x) (cons (num y) '())) (boolV (<= x y))]
-                                   [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                  [(equal? f >=) (match lst
-                                   [(cons (id i) xs) (boolV (>= (cond
-                                                                  [(number? (get-param (lookup i (repeat-id ds)))) (numV-n (lookup i (repeat-id ds)))]
-                                                                  [else (error 'interp "La operación sólo acepta números como parámetro")])
-                                                                (num-n (first (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                   [(cons (num x) xs) (boolV (>= x (num-n (first (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                   [(cons (num x) (cons (num y) '())) (boolV (>= x y))]
-                                   [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                  [(equal? f >) (match lst
-                                  [(cons (id i) xs) (boolV (> (cond
-                                                                [(number? (get-param (lookup i (repeat-id ds)))) (numV-n (lookup i (repeat-id ds)))]
-                                                                [else (error 'interp "La operación sólo acepta números como parámetro")])
-                                                              (num-n (first (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                  [(cons (num x) xs) (boolV (> x (num-n (first (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                  [(cons (num x) (cons (num y) '())) (boolV (> x y))]
-                                  [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                  [(equal? f +) (match lst
-                                  ['() (numV 0)]
-                                  [(cons (id i) xs) (numV (apply + (map num-n (cons (cond
-                                                                                      [(number? (get-param (lookup i (repeat-id ds)))) (num (numV-n (lookup i (repeat-id ds))))]
-                                                                                      [else (error 'interp "La operación sólo acepta números como parámetro")])
-                                                                                    (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                  [(cons (num x) xs) (numV (apply + (map num-n (cons (num x) (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                  [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                  [(equal? f -) (match lst
-                                  ['() (numV 0)]
-                                  [(cons (id i) xs) (numV (apply - (map num-n (cons (cond
-                                                                                      [(number? (get-param (lookup i (repeat-id ds)))) ((num (numV-n (lookup i (repeat-id ds)))))]
-                                                                                      [else (error 'interp "La operación sólo acepta números como parámetro")])
-                                                                                    (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                  [(cons (num x) xs) (numV (apply - (map num-n (cons (num x) (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                  [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                  [(equal? f *) (match lst
-                                  ['() (numV 0)]
-                                  [(cons (id i) xs) (numV (apply * (map num-n (cons (cond
-                                                                                      [(number? (get-param (lookup i (repeat-id ds)))) (num (numV-n (lookup i (repeat-id ds))))]
-                                                                                      [else (error 'interp "La operación sólo acepta números como parámetro")])
-                                                                                    (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                  [(cons (num x) xs) (numV (apply * (map num-n (cons (num x) (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                  [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                  [(equal? f /) (match lst
-                                  ['() (numV 0)]
-                                  [(cons (id i) xs) (numV (apply / (map num-n (cons (cond
-                                                                                      [(number? (get-param (lookup i (repeat-id ds)))) (num (numV-n (lookup i (repeat-id ds))))]
-                                                                                      [else (error 'interp "La operación sólo opera con números")]) (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                  [(cons (num x) xs) (numV (apply / (map num-n (cons (num x) (map (lambda (c) (get-num c (repeat-id ds))) xs)))))]
-                                  [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                  [(equal? f add1) (match lst
-                                     [(cons (id i) '()) (cond
-                                                          [(number? (get-param (lookup i (repeat-id ds)))) (numV (add1 (numV-n (lookup i (repeat-id ds)))))]
-                                                          [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                                     [(cons (num x) '()) (numV (add1 x))]
-                                     [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                  [(equal? f sub1) (match lst
-                                     [(cons (id i) '()) (cond
-                                                          [(number? (get-param (lookup i (repeat-id ds)))) (numV (sub1 (numV-n (lookup i (repeat-id ds)))))]
-                                                          [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                                     [(cons (num x) '()) (numV (sub1 x))]
-                                     [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                  [(equal? f expt) (match lst
-                                     [(cons (id i) xs) (numV (expt (cond
-                                                                     [(number? (get-param (lookup i (repeat-id ds)))) (numV-n (lookup i (repeat-id ds)))]
-                                                                     [else (error 'interp "La operación sólo acepta números como parámetro")])
-                                                                   (num-n (first (map (lambda (c) (get-num c (repeat-id ds))) xs))) ))]
-                                     [(cons (num x) xs) (numV (expt x (num-n (first (map (lambda (c) (get-num c (repeat-id ds))) xs)))) )]
-                                     [(cons (num x) (cons (num y) '())) (numV (expt x y))] )]
-                  [(equal? f modulo) (match lst
-                                       [(cons (id i) xs) (numV (modulo (cond
-                                                                         [(number? (get-param (lookup i (repeat-id ds)))) (numV-n (lookup i (repeat-id ds)))]
-                                                                         [else (error 'interp "La operación sólo acepta números como parámetro")])
-                                                                       (num-n (first (map (lambda (c) (get-num c (repeat-id ds))) xs))) ))]
-                                       [(cons (num x) xs) (numV (modulo x (num-n (first (map (lambda (c) (get-num c (repeat-id ds))) xs)))) )]
-                                       [(cons (num x) (cons (num y) '())) (numV (modulo x y))]  )]
-                  [(equal? f oR) (match lst
-                                   [(cons (id i) xs) (boolV (or (cond
-                                                                  [(boolean? (get-param (lookup i (repeat-id ds)))) (boolV-b (lookup i (repeat-id ds)))]
-                                                                  [else (error 'interp "La operación sólo acepta booleanos como parámetro")])
-
-                                                                (bool-b (first (map (lambda (c) (get-bool c (repeat-id ds))) xs)))))]
-                                   [(cons (bool x) xs) (boolV (or x (bool-b (first (map (lambda (c) (get-bool c (repeat-id ds))) xs)))))]
-                                   [(cons (bool x) (cons (bool y) '())) (boolV (or x y))]
-                                   [else (error 'interp "La operación sólo acepta booleanos como parámetro")])]
-                  [(equal? f anD) (match lst
-                                    [(cons (id i) xs) (boolV (and (cond
-                                                                    [(boolean? (get-param (lookup i (repeat-id ds)))) (boolV-b (lookup i (repeat-id ds)))]
-                                                                    [else (error 'interp "La operación sólo acepta booleanos como parámetro")])
-                                                                  (bool-b (first (map (lambda (c) (get-bool c (repeat-id ds))) xs)))))]
-                                    [(cons (bool x) xs) (boolV (and x (bool-b (first (map (lambda (c) (get-bool c (repeat-id ds))) xs)))))]
-                                    [(cons (bool x) (cons (bool y) '())) (boolV (and x y))]
-                                    [else (error 'interp "La operación sólo acepta booleanos como parámetro")])]
-                  [(equal? f not) (match lst
-                                    [(cons (id i) '()) (boolV (not (cond
-                                                                     [(boolean? (get-param (lookup i (repeat-id ds)))) (boolV-b (lookup i (repeat-id ds)))]
-                                                                     [else (error 'interp "La operación sólo acepta números como parámetro")])))]
-                                    [(cons (bool x) '()) (boolV (not x))]
-                                    [else (error 'interp "La operación sólo acepta booleanos como parámetro")])]
-                  [(equal? f zero?) (match lst
-                                      [(cons (id i) '()) (boolV (zero? (cond
-                                                                         [(number? (get-param (lookup i (repeat-id ds)))) (numV-n (lookup i (repeat-id ds)))]
-                                                                         [else (error 'interp "La operación sólo acepta números como parámetro")])))]
-                                      [(cons (num x) '()) (boolV (zero? x))]
-                                      [else (error 'interp "La operación sólo acepta números como parámetro")])]
-                  [(equal? f num?) (match lst
-                                     [(cons (id i) '()) (boolV (num? (get-param (lookup i (repeat-id ds)))))]
-                                     [(cons (num x) '()) (boolV (num? x))]
-                                     [else (error 'interp "La operación no reconoce lo solicitado")])]
-                  [(equal? f bool?) (match lst
-                                      [(cons (id i) '()) (boolV (bool? (get-param (lookup i (repeat-id ds)))))]
-                                      [(cons (bool x) '()) (boolV (bool? x))]
-                                      [else (error 'interp "La operación no reconoce lo solicitado")])]
-                  [(equal? f char?) (match lst
-                                      [(cons (id i) '()) (boolV (char? (get-param (lookup i (repeat-id ds)))))]
-                                      [(cons (chaR x) '()) (boolV (char? x))]
-                                      [else (error 'interp "La operación no reconoce lo solicitado")])]
-                  [(equal? f string?) (match lst
-                                        [(cons (id i) '()) (boolV (string? (get-param (lookup i (repeat-id ds)))))]
-                                        [(cons (strinG x) '()) (boolV (string? x))]
-                                        [else (error 'interp "La operación no reconoce lo solicitado")])]
-                  [(equal? f list?) (match lst
-                                      [(cons (id i) '()) (boolV (list? (get-param (lookup i (repeat-id ds)))))]
-                                      [(cons (lisT x) '()) (boolV (list? x))]
-                                      [else (error 'interp "La operación no reconoce lo solicitado")])]
-                  [(equal? f empty?) (match lst
-                                       [(cons (lisT x) '()) (boolV (empty? (cond
-                                                                             [(list? x) x]
-                                                                             [else (error 'interp "La operación sólo acepta listas como parámetro")])))]
-                                       [else (error 'interp "La operación empty? sólo acepta una lista como parámetro")])]
-                  [(equal? f cons) (match lst
-                                     [(cons x (cons (id i) '())) (interp (lisT (cons x (lisT-l (get-lts (id i) (repeat-id ds))))) (repeat-id ds))]
-                                     [(cons x (list (lisT xs))) (interp (lisT (cons x xs)) (repeat-id ds))]
-                                     [else (error 'interp "La operación sólo acepta un elemento y una lista como parámetros")])]
-                  [(equal? f car) (match lst
-                                    [(cons (id i) '()) (cond
-                                                         [(list? (get-param (lookup i (repeat-id ds)))) (cv (car (map (lambda (x) (get-param x)) (listV-l (lookup i (repeat-id ds))))))]
-                                                         [else (error "La operación sólo acepta listas como parámetro")])]
-                                    [(list (lisT (cons x xs))) (interp x (repeat-id ds))]
-                                    [else (error 'interp "La operación sólo acepta listas como parámetro")])]
-                  [(equal? f cdr) (match lst
-                                    [(cons (id i) '()) (cond
-                                                         [(list? (get-param (lookup i (repeat-id ds)))) (cv (cdr (map (lambda (x) (get-param x)) (listV-l (lookup i (repeat-id ds))))))]
-                                                         [else (error 'interp "La operación sólo acepta listas como parámetro")])]
-                                    [(list (lisT (cons x xs))) (interp (lisT xs) (repeat-id ds))]
-                                    [else (error 'interp "La operación sólo acepta listas como parámetro")])]
-                  [(equal? f append) (match lst
-                                       [(cons x '()) (interp x (repeat-id ds))]
-                                       [(cons (id i) '()) (cond
-                                                            [(list? (get-param (lookup i (repeat-id ds)))) (lookup i (repeat-id ds))]
-                                                            [else (error 'interp "La operación sólo acepta listas como parámetro")])]
-                                       [(cons (id i) ys) (interp (op append (cons (cond
-                                                                                    [(list? (get-param (lookup i (repeat-id ds)))) (get-lts (id i) (repeat-id ds))]
-                                                                                    [else (error 'interp "La operación sólo acepta listas como parámetro")])
-                                                                                  (map (lambda (x) (get-lts x (repeat-id ds))) ys))) (repeat-id ds))]
-                                       [(cons (lisT x) (cons (lisT y) ys)) (interp (op append (cons (appT (lisT x) (lisT y)) ys)) (repeat-id ds))]
-                                       [(cons (lisT x) xs) (interp (op append (cons (lisT x) (map (lambda (x) (get-lts x (repeat-id ds))) xs))) (repeat-id ds))]
-                                       [else (error 'interp "La operación sólo acepta listas como parámetro")])]
-                  [(equal? f length) (match lst
-                                       ['() (numV 0)]
-                                       [(list '()) (numV 0)]
-                                       [(list (lisT '())) (numV 0)]
-                                       [(cons (lisT x) '()) (numV (lengthT (lisT x)))]
-                                       [(cons (id i) '()) (cond
-                                                            [(list? (get-param (lookup i (repeat-id ds)))) (cv (length (map (lambda (x) (get-param x)) (listV-l (lookup i (repeat-id ds))))))]
-                                                            [else (error 'interp "La operación sólo acepta listas como parámetro")])]
-                                       [else (error 'interp "La operación sólo acepta listas como parámetro")])]
-                  [(equal? f string-append) (match lst
-                                              [(cons x '()) (interp x (repeat-id ds))]
-                                              [(cons (strinG x) '()) (interp (strinG x) (repeat-id ds))]
-                                              [(cons (id i) '()) (cond
-                                                                   [(string? (get-param (lookup i (repeat-id ds)))) (lookup i (repeat-id ds))]
-                                                                   [else (error 'interp "La operación sólo acepta cadenas como parámatro")])]
-                                              [(cons (id i) xs) (interp (op string-append (cons (strinG (cond
-                                                                                                          [(string? (get-param (lookup i (repeat-id ds)))) (stringV-s (lookup i (repeat-id ds)))]
-                                                                                                          [else "La operación sólo acepta cadenas como paráetro"]))
-                                                                                                (map (lambda(x) (get-str x (repeat-id ds))) xs))) (repeat-id ds))]
-                                              [(cons (strinG x) (cons (strinG y) ys)) (interp (op string-append (cons (strinG (string-append x y)) (map (lambda(x) (get-str x (repeat-id ds))) ys))) (repeat-id ds))]
-                                              [(cons (strinG i) xs) (interp (op string-append (cons (strinG i) (map (lambda (x) (get-str x (repeat-id ds))) xs))) (repeat-id ds))]
-                                              [else (error 'interp "La operación sólo acepta cadenas como parámetro")])]
-                  [(equal? f string-length) (match lst
-                                              [(cons (id i) '()) (cond
-                                                                   [(string? (get-param (lookup i (repeat-id ds)))) (numV (string-length (stringV-s (lookup i (repeat-id ds)))))]
-                                                                   [else (error 'interp "La operación sólo acepta cadenas como parámetro")])]
-                                              [(list (strinG a)) (numV (string-length a))]
-                                              [else (error 'interp "La operación sólo acepta cadenas como parámetro")])])]
-    [(fun param body) (closure param body (repeat-id ds))]
-    [(app fun args) (let ([fun-val (interp fun (repeat-id ds))])
+                         [(equal? cnd (bool #t)) (interp then ds)]
+                         [(equal? cnd (bool #f)) (interp els ds)]
+                         [else (interp (iF (bool (boolV-b (interp cnd ds))) then els) ds)])]
+    [(op f lst) (let* ([a (map (lambda (x) (cond
+                                                                [(num? x) (num-n x)]
+                                                                [(bool? x) (bool-b x)]
+                                                                [(chaR? x) (chaR-c x)]
+                                                                [(strinG? x) (strinG-s x)]
+                                                                [(lisT? x) (map (lambda (y) (cond
+                                                                                                              [(num? y) (num-n y)])) (lisT-l x))])) lst)]
+                                [b (apply f a)])
+                              (cond
+                                [(number? b) (numV b)]
+                                [(boolean? b) (boolV b)]
+                                [(char? b) (charV b)]
+                                [(string? b) (stringV b)]
+                                [(list? b) (listV (map (lambda (z) (interp (to-cfwbae z) ds)) b))]))]
+    [(fun param body) (closure param body ds)]
+    [(app fun args) (let ([fun-val (interp fun ds)])
                       (interp (closure-body fun-val)
                               (aSub (first (closure-param fun-val))
-                                    (interp-env args (repeat-id ds))
+                                    (interp-env args ds)
                                     (closure-env fun-val))))]))
 
 
@@ -315,18 +129,18 @@
   (match sexp
     [(lisT n) sexp]
     [(id x) (cond
-              [(list? (get-param (lookup x (repeat-id ds)))) (lisT (map (lambda (x) (cf (get-param x))) (listV-l (lookup x (repeat-id ds)))))]
+              [(list? (get-param (lookup x (repeat-id ds)))) (lisT (map (lambda (x) (to-cfwbae (get-param x))) (listV-l (lookup x (repeat-id ds)))))]
               [else (error 'interp "La operación sólo acepta listas como parámetro")])]))
 
 ;; Tranforma un elemento a uno de tipo CFWBAE
 ;; cf :: any --> CFWBAE
-(define (cf exp)
+(define (to-cfwbae exp)
   (cond
     [(number? exp) (num exp)]
     [(boolean? exp) (bool exp)]
     [(char? exp) (chaR exp)]
     [(string? exp) (strinG exp)]
-    [(list? exp) (lisT (map (lambda (x) (cf x)) exp))]))
+    [(list? exp) (lisT (map (lambda (x) (to-cfwbae x)) exp))]))
 
 ;; Transforma un elemento a uno de tipo CFWBAE-Value
 ;; cv :: any --> CFWBAE-Value
@@ -382,6 +196,5 @@
     [(equal? (id-repeat ds) #f) ds]
     [else (error 'interp "Hay identificadores repetidos en el caché de sustituciones")]))
 
-;;(require racket/trace)
-;;(trace interp)
-
+(require racket/trace)
+(trace interp)
