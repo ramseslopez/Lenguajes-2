@@ -58,11 +58,6 @@
      (interp-app (cdr param-lis) (cdr arg-lis) (aSub (first param-lis) (interp (first arg-lis) original-ds) ds) original-ds)]
     [else (error 'interp "La cantidad de parámetros y agumentos debe ser la misma")]))
 
-(define (interp-env id args ds)
-  (cond
-    [(empty? args) ds]
-    [(> (length args) 1) (interp-env (cdr args) (aSub id (interp (first args) ds) ds) ds)]))
-
 ;; Tranforma un elemento a uno de tipo CFWBAE
 ;; cf :: any --> CFWBAE
 (define (to-cfwbae exp)
@@ -84,7 +79,7 @@
     [(listV l) l]))
 
 
-;(require racket/trace)
+(require racket/trace)
 ;(trace interp)
 ;(trace interp-env)
 ;(interp (desugar (parse '{with [(f (fun (x) (+ x 2)))] {f (n)}})) (aSub 'n (numV 3) (mtSub)))
@@ -93,3 +88,28 @@
 ;(interp (desugar (parse '{with [(f (fun (x) (+ x x))) (xs (lst 2 3))] {cons 2 (lst 4 5)}})) (mtSub))
 ;(interp-env (list (num 4) (num 3)) (mtSub))
 ;(interp (desugar (parse '{(fun (x y) (+ x y)) (3 4)})) (mtSub))
+
+;; Verifica si los operadores poseen los tipos correctos
+;; verified-args :: procedure (listof any) --> any
+(define (verified-args f args)
+  (cond 
+    [(or (equal? f +) (equal? f -) (equal? f *) (equal? f /) (equal? f modulo) (equal? f expt)
+         (equal? f <) (equal? f <=) (equal? f =) (equal? f >=) (equal? f >) (equal? f zero?)
+         (equal? f add1) (equal? f sub1)) (cond
+                                            [(andmap number? args)  (apply f args)]
+                                            [else (error 'interp "El operador sólo acepta números")])]
+    [(or (equal? f anD) (equal? f oR) (equal? f not)) (cond
+                                                        [(andmap boolean? args) (apply f args)]
+                                                        [else (error 'interp "El operador sólo acepta booleanos")])]
+    [(or (equal? f string-append) (equal? f string-length)) (cond
+                                                              [(andmap string? args) (apply f args)]
+                                                              [else (error 'interp "El operador sólo acepta cadenas")])]
+    [(or (equal? f append) (equal? f length) (equal? f car) (equal? f cdr)) (cond
+                                                                              [(andmap list? args) (apply f args)]
+                                                                              [else (error 'interp "El operador sólo acepta listas")])]
+    [(equal? f cons) (cond
+                       [(list? (cdr args)) (apply f args)]
+                       [else (error 'interp "El operador sólo acepta un elemento y una lista")])]
+    [else (apply f args)]))
+
+(trace verified-args)
