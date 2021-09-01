@@ -84,9 +84,3 @@
   [charV    (c char?)]
   [stringV  (s string?)]
   [listV    (l (listof RCFWBAE-Value?))])
-
-;; Definición del procedimiento oR
-(define oR (lambda (x) (or x x)))
-
-;; Definición del procedimiento anD
-(define anD (lambda (x) (and x x)))
