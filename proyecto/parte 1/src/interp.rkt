@@ -51,11 +51,13 @@
                       (interp (closure-body fun-val)
                                (interp-app (closure-param fun-val) args (closure-env fun-val) ds)))]))
 
-(define (interp-app param-lis arg-lis ds original-ds)
+;;
+;;
+(define (interp-app param arg env ds)
   (cond
-    [(and (empty? param-lis) (empty? arg-lis)) ds]
-    [(equal? (length param-lis) (length arg-lis))
-     (interp-app (cdr param-lis) (cdr arg-lis) (aSub (first param-lis) (interp (first arg-lis) original-ds) ds) original-ds)]
+    [(and (empty? param) (empty? arg)) env]
+    [(equal? (length param) (length arg))
+     (interp-app (cdr param) (cdr arg) (aSub (first param) (interp (first arg) ds) env) ds)]
     [else (error 'interp "La cantidad de parámetros y agumentos debe ser la misma")]))
 
 ;; Tranforma un elemento a uno de tipo CFWBAE
