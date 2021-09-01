@@ -15,27 +15,21 @@
     [(stringS s) (stringT)]
     [(listS lst) (map (lambda (x) (typeof x context)) lst)]
     [(opS f lst) (cond
-                   [(or (equal? f +) (equal? f -) (equal? f *) (equal? f /)
-                        (equal? f add1) (equal? f sub1) (equal? f modulo) (equal? f expt)
-                        (equal? f <) (equal? f <=) (equal? f =) (equal? f >=) (equal? f >)
-                        (equal? f zero?)) (cond
+                   [(member f (list + - * / add1 sub1 modulo expt < <= = >= > zero?)) (cond
                                             [(andmap numS? lst) (map (lambda (x) (typeof x context)) lst)]
-                                            [else (error 'typeof "tipos incorrectos")])]
-                   [(or (equal? f anD) (equal? f oR)
-                        (equal? f not)) (cond
+                                            [else (error 'typeof "Los tipos deben ser number")])]
+                   [(member f (list anD oR not)) (cond
                                             [(andmap boolS? lst) (map (lambda (x) (typeof x context)) lst)]
-                                            [else (error 'typeof "tipos incorrectos")])]
-                   [(or (equal? f string-append)
-                        (equal? f string-length)) (cond
+                                            [else (error 'typeof "Los tipos deben ser boolean")])]
+                   [(member f (list string-append string-length)) (cond
                                                     [(andmap stringS? lst) (map (lambda (x) (typeof x context)) lst)]
-                                                    [else (error 'typeof "tipos incorrectos")])]
-                   [(or (equal? f car) (equal? f cdr)
-                       (equal? f length) (equal? f append)) (cond
+                                                    [else (error 'typeof "Los tipos deben ser string")])]
+                   [(member f (list car cdr length append)) (cond
                                                               [(andmap listS? lst) (map (lambda (x) (typeof x context)) lst)]
-                                                              [else (error 'typeof "tipos incorrectos")])]
-                   [(equal? f cons) (cond
+                                                              [else (error 'typeof "Los tipos deben ser list")])]
+                   [(member f (list cons)) (cond
                                       [(listS? (cdr lst)) (map (lambda (x) (typeof x context)) lst)]
-                                      [else (error 'typeof "tipos incorrectos")])]
+                                      [else (error 'typeof "Debe haber un elemento y una lista")])]
                    [else (map (lambda (x) (typeof x context)) lst)])]))
 
 ;; Busca el tipo correspondiente de un identificador
