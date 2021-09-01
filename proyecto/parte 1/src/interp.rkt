@@ -32,13 +32,15 @@
                          [(equal? cnd (bool #f)) (interp els ds)]
                          [else (interp (iF (bool (cond
                                                    [(boolV? (interp cnd ds)) (boolV-b (interp cnd ds))]
-                                                   [else (error 'interp "La condicional de if no es un booleano")])) then els) ds)])]
+                                                   [else (error 'interp "La condicional de if no es un booleano")]))
+                                           then els) ds)])]
     [(op f lst) (let* ([a (map (lambda (x) (cond
                                              [(numV? (interp x ds)) (numV-n (interp x ds))]
                                              [(boolV? (interp x ds)) (boolV-b (interp x ds))]
                                              [(charV? (interp x ds)) (charV-c (interp x ds))]
                                              [(stringV? (interp x ds)) (stringV-s (interp x ds))]
-                                             [(listV? (interp x ds)) (map (lambda (y) (get-param y)) (listV-l (interp x ds)))])) lst)]
+                                             [(listV? (interp x ds))
+                                              (map (lambda (y) (get-param y)) (listV-l (interp x ds)))])) lst)]
                                 [b (verified-args f a)])
                               (cond
                                 [(number? b) (numV b)]
@@ -50,15 +52,6 @@
     [(app fun args) (let ([fun-val (interp fun ds)])
                       (interp (closure-body fun-val)
                                (interp-app (closure-param fun-val) args (closure-env fun-val) ds)))]))
-
-;;
-;;
-(define (interp-app param arg env ds)
-  (cond
-    [(and (empty? param) (empty? arg)) env]
-    [(equal? (length param) (length arg))
-     (interp-app (cdr param) (cdr arg) (aSub (first param) (interp (first arg) ds) env) ds)]
-    [else (error 'interp "La cantidad de parámetros y agumentos debe ser la misma")]))
 
 ;; Tranforma un elemento a uno de tipo CFWBAE
 ;; cf :: any --> CFWBAE
@@ -81,16 +74,6 @@
     [(listV l) l]))
 
 
-;(require racket/trace)
-;(trace interp)
-;(trace interp-env)
-;(interp (desugar (parse '{with [(f (fun (x) (+ x 2)))] {f (n)}})) (aSub 'n (numV 3) (mtSub)))
-;(interp (desugar (parse '{+ 4 x})) (aSub 'x (numV 4) (mtSub)))
-;(interp (op cons (list (num 3) (lisT (list (bool #f) (chaR #\c))))) (mtSub))
-;(interp (desugar (parse '{with [(f (fun (x) (+ x x))) (xs (lst 2 3))] {cons 2 (lst 4 5)}})) (mtSub))
-;(interp-env (list (num 4) (num 3)) (mtSub))
-;(interp (desugar (parse '{(fun (x y) (+ x y)) (3 4)})) (mtSub))
-
 ;; Verifica si los operadores poseen los tipos correctos
 ;; verified-args :: procedure (listof any) --> any
 (define (verified-args f args)
@@ -100,18 +83,34 @@
          (equal? f add1) (equal? f sub1)) (cond
                                             [(andmap number? args)  (apply f args)]
                                             [else (error 'interp "El operador sólo acepta números")])]
-    [(or (equal? f anD) (equal? f oR) (equal? f not)) (cond
-                                                        [(andmap boolean? args) (apply f args)]
-                                                        [else (error 'interp "El operador sólo acepta booleanos")])]
-    [(or (equal? f string-append) (equal? f string-length)) (cond
-                                                              [(andmap string? args) (apply f args)]
-                                                              [else (error 'interp "El operador sólo acepta cadenas")])]
-    [(or (equal? f append) (equal? f length) (equal? f car) (equal? f cdr)) (cond
-                                                                              [(andmap list? args) (apply f args)]
-                                                                              [else (error 'interp "El operador sólo acepta listas")])]
+    [(or (equal? f anD) (equal? f oR)
+         (equal? f not)) (cond
+                           [(andmap boolean? args) (apply f args)]
+                           [else (error 'interp "El operador sólo acepta booleanos")])]
+    [(or (equal? f string-append)
+         (equal? f string-length)) (cond
+                                     [(andmap string? args) (apply f args)]
+                                     [else (error 'interp "El operador sólo acepta cadenas")])]
+    [(or (equal? f append) (equal? f length)
+         (equal? f car) (equal? f cdr)) (cond
+                                          [(andmap list? args) (apply f args)]
+                                          [else (error 'interp "El operador sólo acepta listas")])]
     [(equal? f cons) (cond
                        [(list? (cdr args)) (apply f args)]
                        [else (error 'interp "El operador sólo acepta un elemento y una lista")])]
     [else (apply f args)]))
+
+;; Función que acarrea los id y valores en el ambiente
+;; interp-app :: (listof symbol) (listof CFWBAE-Value) DefrdSub DefrdSub --> DefrdSub 
+(define (interp-app param arg env ds)
+  (cond
+    [(and (empty? param) (empty? arg)) env]
+    [(equal? (length param) (length arg))
+     (interp-app (cdr param) (cdr arg) (aSub (first param) (interp (first arg) ds) env) ds)]
+    [else (error 'interp "La cantidad de parámetros y agumentos debe ser la misma")]))
+
+;;(require racket/trace)
+;;(trace interp)
+
 
 
