@@ -78,24 +78,19 @@
 ;; verified-args :: procedure (listof any) --> any
 (define (verified-args f args)
   (cond 
-    [(or (equal? f +) (equal? f -) (equal? f *) (equal? f /) (equal? f modulo) (equal? f expt)
-         (equal? f <) (equal? f <=) (equal? f =) (equal? f >=) (equal? f >) (equal? f zero?)
-         (equal? f add1) (equal? f sub1)) (cond
+    [(member f (list + - * / modulo expt < <= = >= > zero? add1 sub1)) (cond
                                             [(andmap number? args)  (apply f args)]
                                             [else (error 'interp "El operador sólo acepta números")])]
-    [(or (equal? f anD) (equal? f oR)
-         (equal? f not)) (cond
+    [(member f (list anD oR not)) (cond
                            [(andmap boolean? args) (apply f args)]
                            [else (error 'interp "El operador sólo acepta booleanos")])]
-    [(or (equal? f string-append)
-         (equal? f string-length)) (cond
+    [(member f (list string-append string-length)) (cond
                                      [(andmap string? args) (apply f args)]
                                      [else (error 'interp "El operador sólo acepta cadenas")])]
-    [(or (equal? f append) (equal? f length)
-         (equal? f car) (equal? f cdr)) (cond
+    [(member f (list append length car cdr)) (cond
                                           [(andmap list? args) (apply f args)]
                                           [else (error 'interp "El operador sólo acepta listas")])]
-    [(equal? f cons) (cond
+    [(member f (list cons)) (cond
                        [(list? (cdr args)) (apply f args)]
                        [else (error 'interp "El operador sólo acepta un elemento y una lista")])]
     [else (apply f args)]))
