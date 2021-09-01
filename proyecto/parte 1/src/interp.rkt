@@ -39,7 +39,7 @@
                                              [(charV? (interp x ds)) (charV-c (interp x ds))]
                                              [(stringV? (interp x ds)) (stringV-s (interp x ds))]
                                              [(listV? (interp x ds)) (map (lambda (y) (get-param y)) (listV-l (interp x ds)))])) lst)]
-                                [b (apply f a)])
+                                [b (verified-args f a)])
                               (cond
                                 [(number? b) (numV b)]
                                 [(boolean? b) (boolV b)]
@@ -79,7 +79,7 @@
     [(listV l) l]))
 
 
-(require racket/trace)
+;(require racket/trace)
 ;(trace interp)
 ;(trace interp-env)
 ;(interp (desugar (parse '{with [(f (fun (x) (+ x 2)))] {f (n)}})) (aSub 'n (numV 3) (mtSub)))
@@ -112,4 +112,4 @@
                        [else (error 'interp "El operador sólo acepta un elemento y una lista")])]
     [else (apply f args)]))
 
-(trace verified-args)
+
