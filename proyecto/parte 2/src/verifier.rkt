@@ -223,7 +223,7 @@
                [(not (stringT? (typeof (car lst) context))) (car lst)]
                [else (erroR (cdr lst) "str" context)])]))
 
-(require racket/trace)
-(trace typeof)
+;(require racket/trace)
+;(trace typeof)
 ;(trace type-app)
 ;(typeof (parse '{with [((x : number) number) ((y : number) 9)] {* x y}}) (phi))
