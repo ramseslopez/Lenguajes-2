@@ -185,12 +185,12 @@
 				 [type-fun (typeof fun context)]
 				 [type-params (funT-params type-fun)])
 		(cond 
-			[(equal? (sub1 (length type-params)) (length type-args)) (if (equal? (cdr type-params) type-args)
+			[(equal? (sub1 (length type-params)) (length type-args)) (if (equal? (take type-params (sub1 (length type-params))) type-args)
 																																 (if (idS? fun)
 																																	 (first (reverse type-params))
-																																	 (if (equal? 
-																																				 (typeof (funS-body) context) 
-																																				 (get-context (funS-params fun) context))
+																																	 (if (equal?
+																																				 (typeof (funS-body fun) (get-context (funS-params fun) context))
+																																				 (first (reverse type-params)))
 																																		 (first (reverse type-params))
 																																		 (error 'type-app "El valor de retorno no coincide")))
 																																 (error 'type-app "El tipo de alguno de los argumentos es incorrecto"))]
@@ -198,7 +198,7 @@
 
 (define (get-context params context)
 	(if (empty? params)
-		(context)
+		context
 		(match (car params)
 					 [(param p t) (get-context (cdr params) (gamma p t context))])))
 
@@ -223,6 +223,7 @@
                [(not (stringT? (typeof (car lst) context))) (car lst)]
                [else (erroR (cdr lst) "str" context)])]))
 
-;(require racket/trace)
-;(trace typeof)
+(require racket/trace)
+(trace typeof)
+;(trace type-app)
 ;(typeof (parse '{with [((x : number) number) ((y : number) 9)] {* x y}}) (phi))
