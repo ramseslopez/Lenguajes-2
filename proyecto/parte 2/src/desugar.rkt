@@ -19,21 +19,26 @@
     [(iFS c t e) (iF (desugar c) (desugar t) (desugar e))]
     [(iF0 n t e) (iF (op zero? (list (desugar n))) (desugar t) (desugar e))]
     [(opS f args) (op f (map (lambda (x) (desugar x)) args))]
-    [(condS lst) (ifos sexpr)]))
+    [(condS lst) (ifos sexpr)]
+    [(withS lst body) (app (fun (fsts lst) (desugar body)) (map (lambda (x) (desugar x)) (snds lst)))]
+    [(withS* lst body) (desugar (deswith sexpr))]
+    [(recS lst body) (rec (rec-aux lst) (desugar body))]
+    [(funS param type body) (fun param (desugar body))]
+    [(appS fun args) (app (desugar fun) (map (lambda (x) (desugar x)) args))]))
 
 ;; Obtiene el primer elemento de un Binding
 ;; fsts :: (listof Binding) --> (listof symbol)
 (define (fsts xs)
   (match xs
     ['() '()]
-    [(cons (binding a b) ys) (cons a (fsts ys))]))
+    [(cons (bindingS a t b) ys) (cons (param a t) (fsts ys))]))
 
 ;; Obtiene el segundo elemento de un Binding
 ;; snds :: (listof Binding) --> (listof SCFWBAE)
 (define (snds xs)
   (match xs
     ['() '()]
-    [(cons (binding a b) ys) (cons b (snds ys))]))
+    [(cons (bindingS a t b) ys) (cons b (snds ys))]))
 
 ;; Transforma un withS* a una serie de withS anidados
 ;; deswith :: SRCFWBAE --> SRCFWBAE
@@ -66,4 +71,11 @@
 (define (if2 cnd)
   (match cnd
     [(else-cond a) (list a)]))
+
+;; Función auxiliar que quita el azúcar a una lista de bindings
+;; with-aux :: (listof BindingS) --> (listof Binding)
+(define (rec-aux bindings)
+  (match bindings
+    ['() '()]
+    [(cons (bindingS a t b) xs) (cons (binding a (desugar b)) (rec-aux xs))]))
 
