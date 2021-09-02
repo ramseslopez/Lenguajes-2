@@ -20,7 +20,7 @@
     [(condS cnds) (type-cond cnds context)]
     [(withS lst body) (typeof body (type-with lst context))]
     [(withS* lst body) (typeof body (type-with lst context))]
-    [(recS lst body) null]
+    [(recS lst body) (typeof body (type-rec lst body context))]
     [(funS param type body) (type-fun param type body context)]
     [(appS fun args) null]))
 
@@ -171,8 +171,14 @@
   (match lst
     ['() (typeof body context)]
     [(cons (bindingS id type val) xs) (cond
-                                        [(equal? (typeof val context) type) (type-rec xs body context)]
+                                        [(equal? (typeof val context) type) (type-rec xs body (gamma id type context))]
                                         [else (error 'typeof "El tipo del value es incorrecto")])]))
+
+
+(define (type-rec-aux copy context)
+  (match copy
+    ['() context]
+    [(cons (bindingS id type val) xs) (gamma id type (type-rec-aux xs context))]))
 
 ;; Obtiene el parámetro que no cumple una propiedad específica
 ;; erroR :: (listof SRCFWBAE) string Type-Context --> SRCFWBAE
