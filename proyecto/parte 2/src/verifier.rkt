@@ -13,6 +13,7 @@
     [(boolS b) (booleanT)]
     [(charS c) (charT)]
     [(stringS s) (stringT)]
+    [(funS param type body) type]
     [(listS lst) (map (lambda (x) (typeof x context)) lst)]
     [(opS f lst) (type-op f lst context)]
     [(iFS cnd thn els) (type-if expr context)]
@@ -20,7 +21,7 @@
     [(condS cnds) (type-cond cnds context)]
     [(withS lst body) (typeof body (type-with lst context))]
     [(withS* lst body) (typeof body (type-with lst context))]
-    [(recS lst body) (typeof body (type-rec lst body context))]
+    [(recS lst body) (typeof body (type-with lst context))]
     [(funS param type body) (type-fun param type body context)]
     [(appS fun args) (type-app fun args context)]))
 
@@ -171,7 +172,7 @@
   (match lst
     ['() (typeof body context)]
     [(cons (bindingS id type val) xs) (cond
-                                        [(equal? (typeof val context) type) (type-rec xs body (gamma id type context))]
+                                        [(equal? (typeof val context) type) (type-rec xs body (type-rec-aux lst context))]
                                         [else (error 'typeof "El tipo del value es incorrecto")])]))
 
 
@@ -181,26 +182,26 @@
     [(cons (bindingS id type val) xs) (gamma id type (type-rec-aux xs context))]))
 
 (define (type-app fun args context)
-	(let* ([type-args (map (lambda (x) (typeof x context)) args)]
-				 [type-fun (typeof fun context)]
-				 [type-params (funT-params type-fun)])
-		(cond 
-			[(equal? (sub1 (length type-params)) (length type-args)) (if (equal? (take type-params (sub1 (length type-params))) type-args)
-																																 (if (idS? fun)
-																																	 (first (reverse type-params))
-																																	 (if (equal?
-																																				 (typeof (funS-body fun) (get-context (funS-params fun) context))
-																																				 (first (reverse type-params)))
-																																		 (first (reverse type-params))
-																																		 (error 'type-app "El valor de retorno no coincide")))
-																																 (error 'type-app "El tipo de alguno de los argumentos es incorrecto"))]
-			[else (error 'type-app "El número de parámetros y argumentos es distinto")])))
+  (let* ([type-args (map (lambda (x) (typeof x context)) args)]
+         [type-fun (typeof fun context)]
+         [type-params (funT-params type-fun)])
+    (cond 
+      [(equal? (sub1 (length type-params)) (length type-args)) (if (equal? (take type-params (sub1 (length type-params))) type-args)
+                                                                   (if (idS? fun)
+                                                                       (first (reverse type-params))
+                                                                       (if (equal?
+                                                                            (typeof (funS-body fun) (get-context (funS-params fun) context))
+                                                                            (first (reverse type-params)))
+                                                                           (first (reverse type-params))
+                                                                           (error 'type-app "El valor de retorno no coincide")))
+                                                                   (error 'type-app "El tipo de alguno de los argumentos es incorrecto"))]
+      [else (error 'type-app "El número de parámetros y argumentos es distinto")])))
 
 (define (get-context params context)
-	(if (empty? params)
-		context
-		(match (car params)
-					 [(param p t) (get-context (cdr params) (gamma p t context))])))
+  (if (empty? params)
+      context
+      (match (car params)
+        [(param p t) (get-context (cdr params) (gamma p t context))])))
 
 ;; Obtiene el parámetro que no cumple una propiedad específica
 ;; erroR :: (listof SRCFWBAE) string Type-Context --> SRCFWBAE
@@ -223,7 +224,9 @@
                [(not (stringT? (typeof (car lst) context))) (car lst)]
                [else (erroR (cdr lst) "str" context)])]))
 
-;(require racket/trace)
-;(trace typeof)
+(require racket/trace)
+(trace typeof)
+(trace type-rec)
 ;(trace type-app)
 ;(typeof (parse '{with [((x : number) number) ((y : number) 9)] {* x y}}) (phi))
+(typeof (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : number 5]) {fac (n)}}) (phi))
