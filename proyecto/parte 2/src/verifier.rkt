@@ -18,8 +18,8 @@
     [(iFS cnd thn els) (type-if expr context)]
     [(iF0 cnd thn els) (type-if expr context)]
     [(condS cnds) (type-cond cnds context)]
-    [(withS lst body) (type-with lst body context)]
-    [(withS* lst body) null]
+    [(withS lst body) (type-with lst body context lst)]
+    [(withS* lst body) (type-with lst body context lst)]
     [(recS lst body) null]
     [(funS param type body) null]
     [(appS fun args) null]))
@@ -130,9 +130,20 @@
       [else (error 'type-of "Type error\nConditionals")])))
 
 ;; Obtiene el tipo general de una expresión with
-;; type-with :: (listof BindingS) SRCFWBAE Type-Context --> Type
-(define (type-with lst body context)
-  null)
+;; type-with :: (listof BindingS) SRCFWBAE Type-Context (listof BindingS) --> Type
+(define (type-with list body context copy)
+   (match list
+     ['() (typeof body (type-with-aux copy context))]
+     [(cons (bindingS id type val) xs) (if (not (equal? (typeof val context) type))
+                                         (error 'typeof "El tipo del value es incorrecto")
+                                         (type-with xs body context copy))]))
+
+;; Define un contexto a partir de bindings
+;; type-with-aux :: (listof BindingS) Type-Context --> Type-Context
+(define (type-with-aux copy context)
+  (match copy
+    ['() context]
+    [(cons (bindingS id type val) xs) (gamma id type (type-with-aux xs context))]))
 
 ;; Obtiene el parámetro que no cumple una propiedad específica
 ;; erroR :: (listof SRCFWBAE) string Type-Context --> SRCFWBAE
@@ -155,7 +166,10 @@
                [(not (stringT? (typeof (car lst) context))) (car lst)]
                [else (erroR (cdr lst) "str" context)])]))
 
-
+;(require racket/trace)
+;(trace type-with)
+;(trace type-with-aux)
+;(typeof (parse '{with [((x : number) number) ((y : number) 9)] {* x y}}) (phi))
 
 #|
 (define (type-cond cnd context)
