@@ -96,14 +96,14 @@
        [(booleanT? (typeof cnd context))
         (cond
           [(equal? (typeof thn context) (typeof els context)) (typeof thn context)]
-          [else (error 'typeof "Type error\nConditionals must have same type in then-expr and else-expr")])]
+          [else (error 'typeof "Type error\nconditionals must have same type in then-expr and else-expr")])]
        [else (error "if: Type error\nConditional's test-expr type must be a boolean\nGiven: " (typeof cnd context))])]
     [(iF0 cnd thn els)
      (cond
        [(numberT? (typeof cnd context))
         (cond
           [(equal? (typeof thn context) (typeof els context)) (typeof thn context)]
-          [else (error 'typeof "Type error\nConditionals must have same type in then-expr and else-expr")])]
+          [else (error 'typeof "Type error\nconditionals must have same type in then-expr and else-expr")])]
        [else (error "if0: Type error\nConditional's test-expr type must be a number\nGiven: " (typeof cnd context))])]))
 
 ;; Obtiene el tipo general de una expresión cond
@@ -125,8 +125,8 @@
                    [(else-cond c)
                     (cond
                       [(equal? prev-b (typeof c context)) #t]
-                      [else (error 'typeof "Type error\nConditionals must have same type in then-expr and else-expr")])])) cnds) prev-b]
-      [else (error 'type-of "Type error\nConditionals")])))
+                      [else (error 'typeof "Type error\nconditionals must have same type in then-expr and else-expr")])])) cnds) prev-b]
+      [else (error 'type-of "Error\nConditionals")])))
 
 ;; Obtiene el tipo general de una expresión with
 ;; type-with :: (listof BindingS) Type-Context --> Type-Context
@@ -178,21 +178,3 @@
 ;(trace type-with)
 ;(trace type-with-aux)
 ;(typeof (parse '{with [((x : number) number) ((y : number) 9)] {* x y}}) (phi))
-
-#|
-(define (type-cond cnd context)
-  (let ([prev-b '()])
-    (if (andmap (lambda (x) (match x
-                              [(condition a b) (if (booleanT? (typeof a context))
-                                                   (let ([t (typeof b context)])
-                                                     (if (or (equal? prev-b t)
-                                                             (equal? prev-b '()))
-                                                         #t
-                                                         (error 'typeof "Type error\nConditionals must have same type in then-expr's"))
-                                                     (set! prev-b t))
-                                                   (error "cond: Type error\nConditional's test-expr type must be a number\nGiven: " (typeof a context)))]
-                              [(else-cond c) (if (equal? prev-b (typeof c context))
-                                                 #t
-                                                 (error 'typeof "Type error\nConditionals must have same type in then-expr and else-expr"))])) cnd)
-        prev-b
-        (error 'type-of "Type error\nConditionals"))))|#
