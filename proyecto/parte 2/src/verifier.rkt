@@ -22,7 +22,7 @@
     [(withS* lst body) (typeof body (type-with lst context))]
     [(recS lst body) (typeof body (type-rec lst body context))]
     [(funS param type body) (type-fun param type body context)]
-    [(appS fun args) null]))
+    [(appS fun args) (type-app fun args context)]))
 
 ;; Busca el tipo correspondiente de un identificador
 ;; find-type :: SRCFWBAE Type-Context --> Type
@@ -179,6 +179,28 @@
   (match copy
     ['() context]
     [(cons (bindingS id type val) xs) (gamma id type (type-rec-aux xs context))]))
+
+(define (type-app fun args context)
+	(let* ([type-args (map (lambda (x) (typeof x context)) args)]
+				 [type-fun (typeof fun context)]
+				 [type-params (funT-params type-fun)])
+		(cond 
+			[(equal? (sub1 (length type-params)) (length type-args)) (if (equal? (cdr type-params) type-args)
+																																 (if (idS? fun)
+																																	 (first (reverse type-params))
+																																	 (if (equal? 
+																																				 (typeof (funS-body) context) 
+																																				 (get-context (funS-params fun) context))
+																																		 (first (reverse type-params))
+																																		 (error 'type-app "El valor de retorno no coincide")))
+																																 (error 'type-app "El tipo de alguno de los argumentos es incorrecto"))]
+			[else (error 'type-app "El número de parámetros y argumentos es distinto")])))
+
+(define (get-context params context)
+	(if (empty? params)
+		(context)
+		(match (car params)
+					 [(param p t) (get-context (cdr params) (gamma p t context))])))
 
 ;; Obtiene el parámetro que no cumple una propiedad específica
 ;; erroR :: (listof SRCFWBAE) string Type-Context --> SRCFWBAE
