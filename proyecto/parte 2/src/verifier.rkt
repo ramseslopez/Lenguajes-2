@@ -18,8 +18,8 @@
     [(iFS cnd thn els) (type-if expr context)]
     [(iF0 cnd thn els) (type-if expr context)]
     [(condS cnds) (type-cond cnds context)]
-    [(withS lst body) (type-with lst body context lst)]
-    [(withS* lst body) (type-with lst body context lst)]
+    [(withS lst body) (typeof body (type-with lst context))]
+    [(withS* lst body) (typeof body (type-with lst context))]
     [(recS lst body) null]
     [(funS param type body) null]
     [(appS fun args) null]))
@@ -106,7 +106,6 @@
           [else (error 'typeof "Type error\nConditionals must have same type in then-expr and else-expr")])]
        [else (error "if0: Type error\nConditional's test-expr type must be a number\nGiven: " (typeof cnd context))])]))
 
-
 ;; Obtiene el tipo general de una expresión cond
 ;; type-cond :: SRCFWBAE Type-Context --> Type
 (define (type-cond cnds context)
@@ -130,20 +129,29 @@
       [else (error 'type-of "Type error\nConditionals")])))
 
 ;; Obtiene el tipo general de una expresión with
-;; type-with :: (listof BindingS) SRCFWBAE Type-Context (listof BindingS) --> Type
-(define (type-with list body context copy)
-   (match list
-     ['() (typeof body (type-with-aux copy context))]
-     [(cons (bindingS id type val) xs) (if (not (equal? (typeof val context) type))
-                                         (error 'typeof "El tipo del value es incorrecto")
-                                         (type-with xs body context copy))]))
-
-;; Define un contexto a partir de bindings
-;; type-with-aux :: (listof BindingS) Type-Context --> Type-Context
-(define (type-with-aux copy context)
-  (match copy
+;; type-with :: (listof BindingS) Type-Context --> Type-Context
+(define (type-with lst context)
+  (match lst
     ['() context]
-    [(cons (bindingS id type val) xs) (gamma id type (type-with-aux xs context))]))
+    [(cons (bindingS id type val) xs)
+     (cond
+       [(equal? type (typeof val context)) (type-with xs (gamma id type context))]
+       [else (error (string-append "typeof: Type Error\nExpected type: " (~v type)
+                                   "\nGiven type: " (~v (typeof val context))))])]))
+
+
+;; Obtiene el tipo general de una función
+;; type-fun ::
+(define (type-fun b) null)
+
+;; Obtiene el tipo general de uan función recursiva
+;; type-rec :: (listof BindingS) s-expression Type-Context --> Type
+(define (type-rec lst body context)
+  (match lst
+    ['() (typeof body context)]
+    [(cons (bindingS id type val) xs) (cond
+                                        [(equal? (typeof val context) type) (type-rec xs body context)]
+                                        [else (error 'typeof "El tipo del value es incorrecto")])]))
 
 ;; Obtiene el parámetro que no cumple una propiedad específica
 ;; erroR :: (listof SRCFWBAE) string Type-Context --> SRCFWBAE

@@ -122,9 +122,10 @@
 ;; with-aux :: s-expression --> (listof BindingS)
 (define (with-aux bindings)
   (map (lambda (b)
-         (bindingS (first (first b))
-                   (type (third (first b)))
-                   (parse (cadr b)))) bindings))
+         (bindingS (first b)
+                   (type (third b))
+                   (parse (fourth b)))) bindings))
+
 
 ;; Devuelve el tipo
 ;; type :: s-expression --> Type
