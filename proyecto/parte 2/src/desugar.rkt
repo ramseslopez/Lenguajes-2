@@ -73,7 +73,7 @@
     [(else-cond a) (list a)]))
 
 ;; Función auxiliar que quita el azúcar a una lista de bindings
-;; with-aux :: (listof BindingS) --> (listof Binding)
+;; rec-aux :: (listof BindingS) --> (listof Binding)
 (define (rec-aux bindings)
   (match bindings
     ['() '()]

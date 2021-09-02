@@ -21,7 +21,7 @@
     [(withS lst body) (typeof body (type-with lst context))]
     [(withS* lst body) (typeof body (type-with lst context))]
     [(recS lst body) null]
-    [(funS param type body) null]
+    [(funS param type body) (type-fun param type body context)]
     [(appS fun args) null]))
 
 ;; Busca el tipo correspondiente de un identificador
@@ -109,24 +109,27 @@
 ;; Obtiene el tipo general de una expresión cond
 ;; type-cond :: SRCFWBAE Type-Context --> Type
 (define (type-cond cnds context)
-  (let ([prev-b '()])
-    (cond
-      [(andmap (lambda (x)
-                 (match x
-                   [(condition a b)
-                    (cond
-                      [(booleanT? (typeof a context))
-                       (let ([type-b (typeof b context)])
+  (let* ([prev-b '()]
+         [cond-list? (lambda (x)
+                      (match x
+                        [(condition a b)
                          (cond
-                           [(or (equal? prev-b type-b) (equal? prev-b '())) #t]
-                           [else (error 'typeof "Type error\nConditionals must have same type in then-expr's")])
-                         (set! prev-b type-b))]
-                      [else (error "cond: Type error\nConditional's test-expr type must be a number\nGiven: " (typeof a context))])]
-                   [(else-cond c)
-                    (cond
-                      [(equal? prev-b (typeof c context)) #t]
-                      [else (error 'typeof "Type error\nconditionals must have same type in then-expr and else-expr")])])) cnds) prev-b]
+                           [(booleanT? (typeof a context))
+                            (let ([type-b (typeof b context)])
+                              (cond
+                                [(or (equal? prev-b type-b) (equal? prev-b '())) #t]
+                                [else (error 'typeof "Type error\nConditionals must have same type in then-expr's")])
+                              (set! prev-b type-b))]
+                           [else (error "cond: Type error\nConditional's test-expr type must be a number\nGiven: " (typeof a context))])]
+                        [(else-cond c)
+                         (cond
+                           [(equal? prev-b (typeof c context)) #t]
+                           [else (error 'typeof "Type error\nconditionals must have same type in then-expr and else-expr")])]))])
+    (cond
+      [(andmap cond-list? cnds) prev-b]
       [else (error 'type-of "Error\nConditionals")])))
+
+
 
 ;; Obtiene el tipo general de una expresión with
 ;; type-with :: (listof BindingS) Type-Context --> Type-Context
@@ -142,7 +145,25 @@
 
 ;; Obtiene el tipo general de una función
 ;; type-fun ::
-(define (type-fun b) null)
+(define (type-fun lst type body context)
+    (let* ([get-type (lambda (x) (match x
+                                   [(param id type) type]))]
+           [param-type (map (lambda (y)
+                              (get-type y)) lst)]
+           [fun-last (lambda (z) (match z
+                                [(funT params) (last params)]))])
+      (cond
+        [(equal? (fun-last type) (typeof body (fparam lst context)))
+         (funT (append param-type (list (fun-last type))))]
+        [else (error "fun: Type Error\n type and body must be the same")])))
+
+;;
+;; fparam :: (listof Param) Context-Type --> Context-Type
+(define (fparam lst context)
+  (match lst
+    ['() context]
+    [(cons x xs) (match x
+                   [(param id type) (fparam xs (gamma id type context))])]))
 
 ;; Obtiene el tipo general de uan función recursiva
 ;; type-rec :: (listof BindingS) s-expression Type-Context --> Type
@@ -175,6 +196,5 @@
                [else (erroR (cdr lst) "str" context)])]))
 
 ;(require racket/trace)
-;(trace type-with)
-;(trace type-with-aux)
+;(trace typeof)
 ;(typeof (parse '{with [((x : number) number) ((y : number) 9)] {* x y}}) (phi))
