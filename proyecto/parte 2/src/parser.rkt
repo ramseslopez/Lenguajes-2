@@ -2,11 +2,13 @@
 
 (require (file "./grammars.rkt"))
 
+;; Definición del operador anD
 (define anD (lambda x
     (if (null? x)
         #t
         (if (car x) (apply anD (cdr x)) #f))))
 
+;; Definición del operador oR
 (define oR (lambda x
     (if (null? x)
         #f
@@ -35,13 +37,14 @@
   (match sexp
     ['() (void sexp)]
     [(cons x xs) (case (car sexp)
-                   [(sub1 add1 not length car cdr string-length) (if (equal? (length sexp) 2)
-                                                                     (opS (quitar-lista (car sexp)) (list (parse (second sexp))))
-                                                                     (error 'parse "La aridad debe ser de 1")
-                                                                     )]
-                   [(num? char? bool? string? list? empty? zero?) (if (equal? (length sexp) 2)
-                                                                      (opS (quitar-lista (car sexp)) (map parse (cdr sexp)))
-                                                                      (error 'parse "La aridad debe ser de 1"))]
+                   [(sub1 add1 not length car cdr string-length)
+                    (if (equal? (length sexp) 2)
+                        (opS (quitar-lista (car sexp)) (list (parse (second sexp))))
+                        (error 'parse "La aridad debe ser de 1"))]
+                   [(num? char? bool? string? list? empty? zero?)
+                    (if (equal? (length sexp) 2)
+                        (opS (quitar-lista (car sexp)) (map parse (cdr sexp)))
+                        (error 'parse "La aridad debe ser de 1"))]
                    [(modulo expt) (if (equal? (length sexp) 3)
                                       (opS (quitar-lista (car sexp)) (list (parse (second sexp)) (parse (third sexp))))
                                       (error 'parse "La aridad debe ser de 2"))]
@@ -74,6 +77,7 @@
                    [else (appS (parse (first sexp)) (map parse (second sexp)))])]))
 
 ;; Función que quita la lista y devuelve el operador
+;; quitar-lista :: symbol --> procedure
 (define (quitar-lista car-sexp)
   (case car-sexp
     [(+) +]
@@ -107,6 +111,7 @@
 
 ;; Función auxiliar que parsea un condicional hasta encontrar
 ;; la sentencia `else`
+;; aux-cond :: s-expression --> Condition
 (define (aux-cond sexp)
   (case (car sexp)
     [(else) (else-cond (parse (second sexp)))]
@@ -114,6 +119,7 @@
                      (parse (second sexp)))]))
 
 ;; Función auxiliar que parsea lista de bindings
+;; with-aux :: s-expression --> (listof BindingS)
 (define (with-aux bindings)
   (map (lambda (b)
          (bindingS (first (first b))
@@ -131,14 +137,16 @@
     [(list? exp) (funT (map type (no-arrows exp)))]))
 
 ;; Función que verifica si una lista tiene elementos repetidos
+;; tiene-repetidos :: (listof any) --> boolean
 (define (tiene-repetidos lst)
   (if (equal? (check-duplicates lst) #f) #f #t))
 
 ;; Checa si el último elemento de un cond es un else
+;; check-else :: s-expression --> boolean
 (define (check-else sexp)
 	(equal? (car (last sexp)) 'else))
 
-  ;; Define un parámetro de una expresión
+;; Define un parámetro de una expresión
 ;; params :: s-expression -> Param
 (define (params exp)
   (param (first exp) (type (third exp))))
