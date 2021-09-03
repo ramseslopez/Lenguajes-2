@@ -22,7 +22,7 @@
     [(condS cnds) (type-cond cnds context)]
     [(withS lst body) (typeof body (type-with lst context))]
     [(withS* lst body) (typeof body (type-with lst context))]
-    [(recS lst body) (typeof body (type-with lst context))]
+    [(recS lst body) (type-rec lst context)]
     [(funS param type body) (type-fun param type body context)]
     [(appS fun args) (type-app fun args context)]))
 
@@ -144,9 +144,29 @@
     ['() context]
     [(cons (bindingS id type val) xs)
      (cond
-       [(equal? type (typeof val context)) (type-with xs (gamma id type context))]
+       [(equal? (get-las-type type) (typeof val context)) (type-with xs (gamma id type context))]
+       ;[(equal? #t #t) (error (string-append "si entró aquí " (~v (get-las-type type)) (~v (typeof val context))))]
        [else (error (string-append "typeof: Type Error\nExpected type: " (~v type)
                                    "\nGiven type: " (~v (typeof val context))))])]))
+
+(define (typewiths lst context)
+  (cond
+    [(empty? lst) context]
+    [else (cond
+            [(equal? (get-las-type (get-bind-type (car lst))) (numberT)) (error "Si cumplo")]
+            [else (error "entro")])]))
+
+(define (get-bind-type binding)
+  (type-case BindingS binding
+    [bindingS (id type val) type]))
+
+(define (get-bind-val binding)
+  (type-case BindingS binding
+    [bindingS (id type val) val]))
+
+(define (get-bind-id binding)
+  (type-case BindingS binding
+    [bindingS (id type val) id]))
 
 
 ;; Obtiene el tipo general de una función
@@ -155,13 +175,16 @@
     (let* ([get-type (lambda (x) (match x
                                    [(param id type) type]))]
            [param-type (map (lambda (y)
-                              (get-type y)) lst)]
-           [fun-last (lambda (z) (match z
-                                [(funT params) (last params)]))])
+                              (get-type y)) lst)])
       (cond
-        [(equal? (fun-last type) (typeof body (fparam lst context)))
-         (fun-last type)]
+        [(equal? (get-las-type type) (typeof body (fparam lst context)))
+         (get-las-type type)]
         [else (error "fun: Type Error\n type and body must be the same")])))
+
+(define (get-las-type type)
+  (match type
+    [(funT param) (last param)]
+    [else type]))
 
 ;; Acumula los identificadores en el contexto
 ;; fparam :: (listof Param) Context-Type --> Context-Type
@@ -173,12 +196,10 @@
 
 ;; Obtiene el tipo general de uan función recursiva
 ;; type-rec :: (listof BindingS) s-expression Type-Context --> Type
-(define (type-rec lst body context)
+(define (type-rec lst context)
   (match lst
-    ['() (typeof body context)]
-    [(cons (bindingS id type val) xs) (cond
-                                        [(equal? (typeof val context) type) (type-rec xs body (type-rec-aux lst context))]
-                                        [else (error 'typeof "El tipo del value es incorrecto")])]))
+    ['() context]
+    [(cons (bindingS id type val) xs) (get-las-type type)]))
 
 
 (define (type-rec-aux copy context)
@@ -189,15 +210,15 @@
 (define (type-app fun args context)
   (let* ([type-args (map (lambda (x) (typeof x context)) args)]
          [type-fun (typeof fun context)]
-         [type-params (type-fun)])
+         [type-params (funS-params fun)])
     (cond 
-      [(equal? (sub1 (length type-params)) (length type-args)) (if (equal? (take type-params (sub1 (length type-params))) type-args)
+      [(equal? (length type-params) (length type-args)) (if (equal? (map param-tipo type-params) type-args)
                                                                    (if (idS? fun)
-                                                                       (first (reverse type-params))
+                                                                       (param-tipo (last type-params))
                                                                        (if (equal?
                                                                             (typeof (funS-body fun) (get-context (funS-params fun) context))
-                                                                            (first (reverse type-params)))
-                                                                           (first (reverse type-params))
+                                                                            (param-tipo (last type-params)))
+                                                                           (param-tipo (last type-params))
                                                                            (error 'type-app "El valor de retorno no coincide")))
                                                                    (error (string-append "app: Type error:\nParameter's type doesn't match expected types\nGiven: " (~v type-args)"\nExpected: " (~v type-fun))))]
       [else (error 'type-app "El número de parámetros y argumentos es distinto")])))
@@ -237,7 +258,7 @@
 (require racket/trace)
 (trace typeof)
 (trace type-with)
-;(trace type-app)
-;(typeof (parse '{with* [(x : number 8) (y : number x)] {* x y}}) (phi))
+(trace get-las-type)
+;(typeof (parse '{with* [(x : number 8) (y : number x)] {= x y}}) (phi))
 ;(typeof (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : number 5]) {fac (n)}}) (phi))
-;(typeof (parse '{(fun ((n : number) (m : number)) : (number number -> number) (+ n m)) (2 3)}) (phi))
+(typeof (parse '{(fun ((n : number) (m : number)) : (number number -> number) (+ n m)) (9 3 8)}) (phi))
