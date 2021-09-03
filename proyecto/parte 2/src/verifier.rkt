@@ -13,7 +13,7 @@
     [(boolS b) (booleanT)]
     [(charS c) (charT)]
     [(stringS s) (stringT)]
-    [(funS param type body) type]
+    ;[(funS param type body) type]
     [(listS lst) (map (lambda (x) (typeof x context)) lst)]
     [(opS f lst) (type-op f lst context)]
     [(iFS cnd thn els) (type-if expr context)]
@@ -42,43 +42,43 @@
      (cond
        [(andmap (lambda (x) (numberT? (typeof x context))) lst) (numberT)]
        [else (error
-              (string-append "typeof: Error in parameter: " (~v (erroR lst "num" context))
+              (string-append "typeof: Error in parameter " (~v (erroR lst "num" context))
                              "\nExpected type: (numberT)\nGiven type: " (~v (typeof (erroR lst "num" context) context))))])]
     [(member f (list < <= = >= >))
      (cond
        [(andmap (lambda (x) (numberT? (typeof x context))) lst) (booleanT)]
        [else (error
-              (string-append "typeof: Error in parameter:" (~v (erroR lst "num" context))
+              (string-append "typeof: Error in parameter " (~v (erroR lst "num" context))
                              "\nExpected type: (numberT)\nGiven type: " (~v (typeof (erroR lst "num" context) context))))])]
     [(equal? f zero?)
      (cond
        [(numberT? (typeof (car lst) context)) (booleanT)]
        [else (error
-              (string-append "typeof: Error in parameter:" (~v (erroR lst "num" context))
+              (string-append "typeof: Error in parameter " (~v (erroR lst "num" context))
                              "\nExpected type: (numberT)\nGiven type: " (~v (typeof (erroR lst "num" context) context))))])]
     [(equal? f not)
      (cond
        [(booleanT? (typeof (car lst) context)) (booleanT)]
        [else (error
-              (string-append "typeof: Error in parameter:" (~v (erroR lst "bool" context))
+              (string-append "typeof: Error in parameter " (~v (erroR lst "bool" context))
                              "\nExpected type: (booleanT)\nGiven type: " (~v (typeof (erroR lst "bool" context) context))))])]
     [(member f (list anD oR))
      (cond
        [(andmap (lambda (x) (booleanT? (typeof x context))) lst) (booleanT)]
        [else (error
-              (string-append "typeof: Error in parameter:" (~v (erroR lst "bool" context))
+              (string-append "typeof: Error in parameter " (~v (erroR lst "bool" context))
                              "\nExpected type: (booleanT)\nGiven type: " (~v (typeof (erroR lst "bool" context) context))))])]
     [(equal? f string-append)
      (cond
        [(andmap (lambda (x) (stringT? (typeof x context))) lst) (stringT)]
        [else (error
-              (string-append "typeof: Error in parameter:" (~v (erroR lst "str" context))
+              (string-append "typeof: Error in parameter " (~v (erroR lst "str" context))
                              "\nExpected type: (stringT)\nGiven type: " (~v (typeof (erroR lst "str" context) context))))])]
     [(equal? f string-length)
      (cond
        [(stringT? (typeof (car lst) context)) (numberT)]
        [else (error
-              (string-append "typeof: Error in parameter:" (~v (erroR lst "str" context))
+              (string-append "typeof: Error in parameter " (~v (erroR lst "str" context))
                              "\nExpected type: (stringT)\nGiven type: " (~v (typeof (erroR lst "str" context) context))))])]
     [(equal? f car) (typeof (car (listS-l (car lst))) context)]
     [(equal? f length) (cond
@@ -98,14 +98,14 @@
         (cond
           [(equal? (typeof thn context) (typeof els context)) (typeof thn context)]
           [else (error 'typeof "Type error\nconditionals must have same type in then-expr and else-expr")])]
-       [else (error "if: Type error\nConditional's test-expr type must be a boolean\nGiven: " (typeof cnd context))])]
+       [else (error "if: Type error\nConditional's test-expr type must be a boolean\nGiven:"(typeof cnd context))])]
     [(iF0 cnd thn els)
      (cond
        [(numberT? (typeof cnd context))
         (cond
           [(equal? (typeof thn context) (typeof els context)) (typeof thn context)]
           [else (error 'typeof "Type error\nconditionals must have same type in then-expr and else-expr")])]
-       [else (error "if0: Type error\nConditional's test-expr type must be a number\nGiven: " (typeof cnd context))])]))
+       [else (error "if0: Type error\nConditional's test-expr type must be a number\nGiven:"(typeof cnd context))])]))
 
 ;; Obtiene el tipo general de una expresión cond
 ;; type-cond :: SRCFWBAE Type-Context --> Type
@@ -155,7 +155,7 @@
                                 [(funT params) (last params)]))])
       (cond
         [(equal? (fun-last type) (typeof body (fparam lst context)))
-         (funT (append param-type (list (fun-last type))))]
+         (fun-last type)]
         [else (error "fun: Type Error\n type and body must be the same")])))
 
 ;;
@@ -184,7 +184,7 @@
 (define (type-app fun args context)
   (let* ([type-args (map (lambda (x) (typeof x context)) args)]
          [type-fun (typeof fun context)]
-         [type-params (funT-params type-fun)])
+         [type-params (type-fun)])
     (cond 
       [(equal? (sub1 (length type-params)) (length type-args)) (if (equal? (take type-params (sub1 (length type-params))) type-args)
                                                                    (if (idS? fun)
@@ -194,7 +194,7 @@
                                                                             (first (reverse type-params)))
                                                                            (first (reverse type-params))
                                                                            (error 'type-app "El valor de retorno no coincide")))
-                                                                   (error 'type-app "El tipo de alguno de los argumentos es incorrecto"))]
+                                                                   (error (string-append "app: Type error:\nParameter's type doesn't match expected types\nGiven: " (~v type-args)"\nExpected: " (~v type-fun))))]
       [else (error 'type-app "El número de parámetros y argumentos es distinto")])))
 
 (define (get-context params context)
@@ -202,6 +202,7 @@
       context
       (match (car params)
         [(param p t) (get-context (cdr params) (gamma p t context))])))
+
 
 ;; Obtiene el parámetro que no cumple una propiedad específica
 ;; erroR :: (listof SRCFWBAE) string Type-Context --> SRCFWBAE
@@ -226,7 +227,8 @@
 
 (require racket/trace)
 (trace typeof)
-(trace type-rec)
+(trace type-with)
 ;(trace type-app)
-;(typeof (parse '{with [((x : number) number) ((y : number) 9)] {* x y}}) (phi))
+;(typeof (parse '{with* [(x : number 8) (y : number x)] {* x y}}) (phi))
 (typeof (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : number 5]) {fac (n)}}) (phi))
+;(typeof (parse '{(fun ((n : number) (m : number)) : (number number -> number) (+ n m)) (2 3)}) (phi))
