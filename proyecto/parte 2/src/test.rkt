@@ -30,7 +30,7 @@
 
 (test/exn (prueba '{if 3 2 #t}) "if: Type error\nConditional's test-expr type must be a boolean\nGiven: (numberT)")
 
-(test (prueba '{fun {{x : number} {y : boolean}} : (number boolean -> number) {if y x 0}}) (funT (list (numberT) (booleanT) (numberT))))
+(test (prueba '{fun {{x : number} {y : boolean}} : (number boolean -> number) {if y x 0}}) (numberT))
 
 (test/exn (prueba '{fun {{x : number} {y : number}} : (number number -> number) {if y x 0}}) "if: Type error\nConditional's test-expr type must be a boolean\nGiven: (numberT)")
 

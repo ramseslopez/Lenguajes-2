@@ -217,9 +217,9 @@
                                                                        (param-tipo (last type-params))
                                                                        (if (equal?
                                                                             (typeof (funS-body fun) (get-context (funS-params fun) context))
-                                                                            (param-tipo (last type-params)))
-                                                                           (param-tipo (last type-params))
-                                                                           (error 'type-app "El valor de retorno no coincide")))
+                                                                            (get-las-type (funS-rType fun)))
+                                                                           (get-las-type (funS-rType fun))
+                                                                           (error (~a "type-app El valor de retorno no coincide " (typeof (funS-body fun) (get-context (funS-params fun) context)) "rr" (param-tipo (last type-params))))))
                                                                    (error (string-append "app: Type error:\nParameter's type doesn't match expected types\nGiven: " (~v type-args)"\nExpected: " (~v type-fun))))]
       [else (error 'type-app "El número de parámetros y argumentos es distinto")])))
 
@@ -257,8 +257,9 @@
 
 (require racket/trace)
 (trace typeof)
-(trace type-with)
-(trace get-las-type)
+;(trace type-with)
+;(trace get-las-type)
 ;(typeof (parse '{with* [(x : number 8) (y : number x)] {= x y}}) (phi))
 ;(typeof (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : number 5]) {fac (n)}}) (phi))
-(typeof (parse '{(fun ((n : number) (m : number)) : (number number -> number) (+ n m)) (9 3 8)}) (phi))
+;(typeof (parse '{(fun ((n : number) (m : number)) : (number number -> number) (+ n m)) (9 3 8)}) (phi))
+(typeof (parse '{{fun {{x : number} {y : boolean}} : (number boolean -> number) {if y x 0}} {2 #t}}) (phi))
