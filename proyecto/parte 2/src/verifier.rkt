@@ -14,7 +14,8 @@
     [(charS c) (charT)]
     [(stringS s) (stringT)]
     ;[(funS param type body) type]
-    [(listS lst) (map (lambda (x) (typeof x context)) lst)]
+    ;[(listS lst) (map (lambda (x) (typeof x context)) lst)]
+    [(listS lst) (listT)]
     [(opS f lst) (type-op f lst context)]
     [(iFS cnd thn els) (type-if expr context)]
     [(iF0 cnd thn els) (type-if expr context)]
@@ -82,10 +83,14 @@
                              "\nExpected type: (stringT)\nGiven type: " (~v (typeof (erroR lst "str" context) context))))])]
     [(equal? f car) (typeof (car (listS-l (car lst))) context)]
     [(equal? f length) (cond
-                         [(listS? (car lst)) (numberT)]
-                         [else (error 'typeof "El tipo debe ser una lista")])]
-    [(member f (list cons append)) (flatten (map (lambda (x) (typeof x context)) lst))]
-    [(equal? f cdr) (map (lambda (x) (typeof x context)) (cdr (listS-l (car lst))))]
+                         [(listT? (typeof (car lst) context)) (numberT)]
+                         [else
+                          (error (string-append "typeof: Error in parameter " (~v (erroR lst "lts" context))
+                                                "\nExpected type: (listT)\nGiven type: " (~v (typeof (erroR lst "lts" context) context))))])]
+    ;[(member f (list cons append)) (flatten (map (lambda (x) (typeof x context)) lst))]
+    [(member f (list cons append)) (listT)]
+    ;[(equal? f cdr) (map (lambda (x) (typeof x context)) (cdr (listS-l (car lst))))]
+    [(equal? f cdr) (listT)]
     [else (booleanT)]))
 
 ;; Obtiene el tipo general de una expresión if
@@ -158,7 +163,7 @@
          (fun-last type)]
         [else (error "fun: Type Error\n type and body must be the same")])))
 
-;;
+;; Acumula los identificadores en el contexto
 ;; fparam :: (listof Param) Context-Type --> Context-Type
 (define (fparam lst context)
   (match lst
@@ -223,12 +228,16 @@
     ["str" (cond
                [(empty? lst) empty]
                [(not (stringT? (typeof (car lst) context))) (car lst)]
-               [else (erroR (cdr lst) "str" context)])]))
+               [else (erroR (cdr lst) "str" context)])]
+    ["lts" (cond
+               [(empty? lst) empty]
+               [(not (listT? (typeof (car lst) context))) (car lst)]
+               [else (erroR (cdr lst) "lts" context)])]))
 
 (require racket/trace)
 (trace typeof)
 (trace type-with)
 ;(trace type-app)
 ;(typeof (parse '{with* [(x : number 8) (y : number x)] {* x y}}) (phi))
-(typeof (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : number 5]) {fac (n)}}) (phi))
+;(typeof (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : number 5]) {fac (n)}}) (phi))
 ;(typeof (parse '{(fun ((n : number) (m : number)) : (number number -> number) (+ n m)) (2 3)}) (phi))

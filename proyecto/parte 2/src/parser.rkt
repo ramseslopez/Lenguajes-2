@@ -135,6 +135,7 @@
     [(equal? exp 'boolean) (booleanT)]
     [(equal? exp 'char) (charT)]
     [(equal? exp 'string) (stringT)]
+    [(equal? exp 'list) (listT)]
     [(list? exp) (funT (map type (no-arrows exp)))]))
 
 ;; Función que verifica si una lista tiene elementos repetidos

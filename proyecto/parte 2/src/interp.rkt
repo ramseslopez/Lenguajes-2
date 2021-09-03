@@ -59,7 +59,7 @@
                     [(char? b) (charV b)]
                     [(string? b) (stringV b)]
                     [(list? b) (listV (map (lambda (z) (interp (to-rcfwbae z) ds)) b))]))]
-    [(fun param body) (closure param body ds)]
+    [(fun param body) (closure (map get-symbol param) body ds)]
     [(app fun args) (let ([fun-val (interp fun ds)])
                       (interp (closure-body fun-val)
                               (interp-app (closure-param fun-val) args (closure-env fun-val) ds)))]))
@@ -115,6 +115,10 @@
      (interp-app (cdr param) (cdr arg) (aSub (first param) (interp (first arg) ds) env) ds)]
     [else (error 'interp "La cantidad de parámetros y agumentos debe ser la misma")]))
 
-;;(require racket/trace)
-;;(trace interp)
+(define (get-symbol par)
+  (match par
+    [(param id type) id]))
+
+(require racket/trace)
+(trace interp)
 

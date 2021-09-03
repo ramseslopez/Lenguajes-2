@@ -6,6 +6,7 @@
   [booleanT]
   [charT]
   [stringT]
+  [listT]
   [funT (params (listof Type?))])
 
 ;; Definición del tipo Type-Context
