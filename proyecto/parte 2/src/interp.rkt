@@ -21,7 +21,7 @@
 ;; lookup :: symbol Env --> RCFWBAE-Typed
 (define (lookup name ds)
   (match ds
-    [(mtSub) (error "lookup: Free variable " name)]
+    [(mtSub) (error (string-append "lookup: Hay un identificador libre: " (symbol->string name)))]
     [(aSub id value env) (cond
                            [(equal? name id) value]
                            [else (lookup name env)])]))
@@ -43,7 +43,7 @@
                          [(equal? cnd (bool #f)) (interp els ds)]
                          [else (interp (iF (bool (cond
                                                    [(boolV? (interp cnd ds)) (boolV-b (interp cnd ds))]
-                                                   [else (error 'interp "La condicional de if no es un booleano")]))
+                                                   [else (error 'interp "Símbolo no esperado. La condicional de if, no es un booleano")]))
                                            then els) ds)])]
     [(op f lst) (let* ([a (map (lambda (x) (cond
                                              [(numV? (interp x ds)) (numV-n (interp x ds))]
@@ -59,6 +59,7 @@
                     [(char? b) (charV b)]
                     [(string? b) (stringV b)]
                     [(list? b) (listV (map (lambda (z) (interp (to-rcfwbae z) ds)) b))]))]
+    
     [(fun param body) (closure (map get-symbol param) body ds)]
     [(app fun args) (let ([fun-val (interp fun ds)])
                       (interp (closure-body fun-val)
@@ -98,9 +99,12 @@
     [(member f (list string-append string-length)) (cond
                                                      [(andmap string? args) (apply f args)]
                                                      [else (error 'interp "El operador sólo acepta cadenas")])]
-    [(member f (list append length car cdr)) (cond
+    [(member f (list append length cdr)) (cond
                                                [(andmap list? args) (apply f args)]
                                                [else (error 'interp "El operador sólo acepta listas")])]
+    [(equal? f car) (cond
+                      [(andmap list? args) (apply f args)]
+                      [else (error 'interp "Símbolo no esperado. El segundo parámetro de car debe ser una lista.")])]
     [(member f (list cons)) (cond
                               [(list? (cdr args)) (apply f args)]
                               [else (error 'interp "El operador sólo acepta un elemento y una lista")])]
@@ -119,6 +123,20 @@
   (match par
     [(param id type) id]))
 
-(require racket/trace)
-(trace interp)
+#|
+(define (test n)
+  (let ([fact (box 'dummy)])
+    (let ([fact-fun
+           (lambda n
+             (if (zero? n)
+                 1
+                 (* n ((unbox fact) (- n 1)))))])
+      (begin
+        (set-box! fact fact-fun)
+        ((unbox fact) n)))))
 
+(test 10)|#
+;(require racket/trace)
+;(trace interp)
+;(trace test)
+;(parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : number 5]) {fac (n)}})

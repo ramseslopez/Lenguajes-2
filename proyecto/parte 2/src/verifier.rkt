@@ -22,7 +22,7 @@
     [(condS cnds) (type-cond cnds context)]
     [(withS lst body) (typeof body (type-with lst context))]
     [(withS* lst body) (typeof body (type-with lst context))]
-    [(recS lst body) (type-rec lst context)]
+    [(recS lst body) (type-recs lst context)]
     [(funS param type body) (type-fun param type body context)]
     [(appS fun args) (type-app fun args context)]))
 
@@ -149,28 +149,34 @@
        [else (error (string-append "typeof: Type Error\nExpected type: " (~v type)
                                    "\nGiven type: " (~v (typeof val context))))])]))
 
-(define (typewiths lst context)
+#|
+(define (busca-id id type val context)
   (cond
-    [(empty? lst) context]
-    [else (cond
-            [(equal? (get-las-type (get-bind-type (car lst))) (numberT)) (error "Si cumplo")]
-            [else (error "entro")])]))
+    [(equal? (not (member id (flatten val))) #f) (gamma id type context)]
+    [else (typeof val context)]))
+|#
 
-(define (get-bind-type binding)
-  (type-case BindingS binding
-    [bindingS (id type val) type]))
+(define (type-recs lst context)
+  (match lst
+    ['() context]
+    [(cons (bindingS id type val) xs)
+     (cond
+       [(equal? id (free-var id context)) (cond 
+                                            [(equal? (get-las-type type) (typeof val (gamma id (get-las-type type) context)))
+                                             (type-recs xs (gamma id type (gamma id (get-las-type type) context)))])]
+       [(equal? (get-las-type type) (typeof val context)) (type-recs xs (gamma id type context))]
+       [else (error (string-append "typeof: Type Error\nExpected type: " (~v type)
+                                   "\nGiven type: " (~v (typeof val context))))])]))
 
-(define (get-bind-val binding)
-  (type-case BindingS binding
-    [bindingS (id type val) val]))
-
-(define (get-bind-id binding)
-  (type-case BindingS binding
-    [bindingS (id type val) id]))
-
+(define (free-var id context)
+  (match context
+    [(phi) id]
+    [(gamma var type rest) (cond
+                             [(equal? id var) #f]
+                             [else (free-var id rest)])]))
 
 ;; Obtiene el tipo general de una función
-;; type-fun ::
+;; type-fun :: (listof Param) Type SRCFWBAE Type-Context --> Type
 (define (type-fun lst type body context)
     (let* ([get-type (lambda (x) (match x
                                    [(param id type) type]))]
@@ -199,13 +205,14 @@
 (define (type-rec lst context)
   (match lst
     ['() context]
-    [(cons (bindingS id type val) xs) (get-las-type type)]))
+    [(cons (bindingS id type val) xs) (gamma id val (type-rec xs context))]))
 
 
-(define (type-rec-aux copy context)
-  (match copy
-    ['() context]
-    [(cons (bindingS id type val) xs) (gamma id type (type-rec-aux xs context))]))
+(define (type-rec-aux lst context)
+  (match lst
+    [(cons (bindingS id type val) xs) (cond
+                                       [(equal? (not (member id (flatten val))) #f) (gamma id type (type-rec xs context))]
+                                       [else (error "ERROR")])]))
 
 (define (type-app fun args context)
   (let* ([type-args (map (lambda (x) (typeof x context)) args)]
@@ -220,7 +227,7 @@
                                                                             (get-las-type (funS-rType fun)))
                                                                            (get-las-type (funS-rType fun))
                                                                            (error (~a "type-app El valor de retorno no coincide " (typeof (funS-body fun) (get-context (funS-params fun) context)) "rr" (param-tipo (last type-params))))))
-                                                                   (error (string-append "app: Type error:\nParameter's type doesn't match expected types\nGiven: " (~v type-args)"\nExpected: " (~v type-fun))))]
+                                                                   (error (string-append "app: Type error:\nParameter's type doesn't match expected argument's type.\nGiven: " (~v type-fun)"\nExpected: (booleanT)")))]
       [else (error 'type-app "El número de parámetros y argumentos es distinto")])))
 
 (define (get-context params context)
@@ -255,11 +262,11 @@
                [(not (listT? (typeof (car lst) context))) (car lst)]
                [else (erroR (cdr lst) "lts" context)])]))
 
-(require racket/trace)
-(trace typeof)
+;(require racket/trace)
+;(trace typeof)
 ;(trace type-with)
 ;(trace get-las-type)
-;(typeof (parse '{with* [(x : number 8) (y : number x)] {= x y}}) (phi))
+;(typeof (parse '{with [(x : number 8) (y : boolean #f)] {expt x y}}) (phi))
 ;(typeof (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : number 5]) {fac (n)}}) (phi))
 ;(typeof (parse '{(fun ((n : number) (m : number)) : (number number -> number) (+ n m)) (9 3 8)}) (phi))
-(typeof (parse '{{fun {{x : number} {y : boolean}} : (number boolean -> number) {if y x 0}} {2 #t}}) (phi))
+;(typeof (parse '{{fun {{x : number} {y : boolean}} : (number boolean -> number) {if y x 0}} {2 #t}}) (phi))
