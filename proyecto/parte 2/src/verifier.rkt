@@ -178,10 +178,15 @@
 ;; Obtiene el tipo general de una función
 ;; type-fun :: (listof Param) Type SRCFWBAE Type-Context --> Type
 (define (type-fun lst type body context)
-	(let ([con (get-context lst context)])
-		(if (equal? type (typeof body con))
-								(funT (append (map (lambda (x) (param-tipo x)) lst) (list type)))
-								(error "fun: Type Error\n type and body must be the same"))))
+    (let* ([get-type (lambda (x) (match x
+                                   [(param id type) type]))]
+           [param-type (map (lambda (y)
+                              (get-type y)) lst)])
+      (cond
+        [(equal? (get-las-type type) (typeof body (fparam lst context)))
+         (funT (append param-type (list (get-las-type type))))]
+				 ;(get-las-type type)]
+        [else (error "fun: Type Error\n type and body must be the same")])))
 
 (define (get-las-type type)
   (match type
