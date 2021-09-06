@@ -7,24 +7,23 @@
 ;; de la expresión mínima.
 ;; typeof :: CFWBAE Type-Context --> Type
 (define (typeof expr context)
-  (match expr
-    [(idS i) (find-type i context)]
-    [(numS n) (numberT)]
-    [(boolS b) (booleanT)]
-    [(charS c) (charT)]
-    [(stringS s) (stringT)]
-    ;[(funS param type body) type]
-    ;[(listS lst) (map (lambda (x) (typeof x context)) lst)]
-    [(listS lst) (listT)]
-    [(opS f lst) (type-op f lst context)]
-    [(iFS cnd thn els) (type-if expr context)]
-    [(iF0 cnd thn els) (type-if expr context)]
-    [(condS cnds) (type-cond cnds context)]
-    [(withS lst body) (typeof body (type-with lst context))]
-    [(withS* lst body) (typeof body (type-with lst context))]
-    [(recS lst body) (type-recs lst context)]
-    [(funS param type body) (type-fun param type body context)]
-    [(appS fun args) (type-app fun args context)]))
+  (type-case SRCFWBAE-Typed expr
+    [idS (i) (find-type i context)]
+    [numS (n) (numberT)]
+    [boolS (b) (booleanT)]
+    [charS (c) (charT)]
+    [stringS (s) (stringT)]
+    [listS (lst) (listT)]
+    [opS (f lst) (type-op f lst context)]
+    [iFS (cnd thn els) (type-if expr context)]
+    [iF0 (cnd thn els) (type-if expr context)]
+    [condS (cnds) (type-cond cnds context)]
+    [withS (lst body) (typeof body (type-with lst context))]
+    [withS* (lst body) (typeof body (type-with lst context))]
+    [recS (lst body) (type-recs body lst context)]
+    [funS (param type body) (type-fun param type body context)]
+    [appS (fun args) (type-app fun args context)]))
+
 
 ;; Busca el tipo correspondiente de un identificador
 ;; find-type :: SRCFWBAE Type-Context --> Type
@@ -87,9 +86,7 @@
                          [else
                           (error (string-append "typeof: Error in parameter " (~v (erroR lst "lts" context))
                                                 "\nExpected type: (listT)\nGiven type: " (~v (typeof (erroR lst "lts" context) context))))])]
-    ;[(member f (list cons append)) (flatten (map (lambda (x) (typeof x context)) lst))]
     [(member f (list cons append)) (listT)]
-    ;[(equal? f cdr) (map (lambda (x) (typeof x context)) (cdr (listS-l (car lst))))]
     [(equal? f cdr) (listT)]
     [else (booleanT)]))
 
@@ -145,17 +142,18 @@
     [(cons (bindingS id type val) xs)
      (cond
        [(equal? (get-las-type type) (typeof val context)) (type-with xs (gamma id type context))]
-       ;[(equal? #t #t) (error (string-append "si entró aquí " (~v (get-las-type type)) (~v (typeof val context))))]
        [else (error (string-append "typeof: Type Error\nExpected type: " (~v type)
                                    "\nGiven type: " (~v (typeof val context))))])]))
 
-#|
-(define (busca-id id type val context)
-  (cond
-    [(equal? (not (member id (flatten val))) #f) (gamma id type context)]
-    [else (typeof val context)]))
-|#
 
+
+(define (type-recs body lst context)
+  (match lst
+    ['() context]
+    [(cons x xs) (type-case BindingS x
+                   [bindingS (id type value) 6])]))
+
+#|
 (define (type-recs lst context)
   (match lst
     ['() context]
@@ -166,7 +164,7 @@
                                              (type-recs xs (gamma id type (gamma id (get-las-type type) context)))])]
        [(equal? (get-las-type type) (typeof val context)) (type-recs xs (gamma id type context))]
        [else (error (string-append "typeof: Type Error\nExpected type: " (~v type)
-                                   "\nGiven type: " (~v (typeof val context))))])]))
+                                   "\nGiven type: " (~v (typeof val context))))])]))|#
 
 (define (free-var id context)
   (match context
@@ -185,7 +183,6 @@
       (cond
         [(equal? (get-las-type type) (typeof body (fparam lst context)))
          (funT (append param-type (list (get-las-type type))))]
-				 ;(get-las-type type)]
         [else (error "fun: Type Error\n type and body must be the same")])))
 
 (define (get-las-type type)

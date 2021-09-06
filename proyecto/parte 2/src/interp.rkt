@@ -24,7 +24,11 @@
     [(mtSub) (error (string-append "lookup: Hay un identificador libre: " (symbol->string name)))]
     [(aSub id value env) (cond
                            [(equal? name id) value]
-                           [else (lookup name env)])]))
+                           [else (lookup name env)])]
+    [(aRecSub id value rest-env)
+               (if (equal? id name)
+                       (unbox value) 
+                      (lookup name rest-env))]))
 
 ;; Toma un árbol de sintáxis abstraca del lenguaje CFWAE, un caché de
 ;; sustituciones y lo interpreta dependiendo de las definiciones dentro del caché,
@@ -59,7 +63,7 @@
                     [(char? b) (charV b)]
                     [(string? b) (stringV b)]
                     [(list? b) (listV (map (lambda (z) (interp (to-rcfwbae z) ds)) b))]))]
-    
+    [(rec lst body) (interp body (cyclically-bind-and-interp lst ds))]
     [(fun param body) (closure (map get-symbol param) body ds)]
     [(app fun args) (let ([fun-val (interp fun ds)])
                       (interp (closure-body fun-val)
@@ -123,8 +127,19 @@
   (match par
     [(param id type) id]))
 
-#|
-(define (test n)
+
+;; cyclically-bind-and-interp : symbol RCFWBAE Env --> Env
+(define (cyclically-bind-and-interp lst env)
+  (match lst
+    ['() env]
+    [(cons (binding id value) xs) (let* ([contenedor (box 'dummy)] 
+                                         [ambiente (aRecSub id contenedor env)]
+                                         [valor (interp value ambiente)])
+                                    (begin
+                                      (set-box! contenedor valor) 
+                                      (cyclically-bind-and-interp xs ambiente)))]))
+
+#|(define (test n)
   (let ([fact (box 'dummy)])
     (let ([fact-fun
            (lambda n
@@ -135,8 +150,9 @@
         (set-box! fact fact-fun)
         ((unbox fact) n)))))
 
-(test 10)|#
+(test 5)|#
 ;(require racket/trace)
 ;(trace interp)
 ;(trace test)
-;(parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : number 5]) {fac (n)}})
+;(interp (desugar (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : number 5]) {fac (n)}})) (mtSub))
+;(interp (desugar (parse '{rec ([fibo : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 0 {if {= n 1} 1 {+ (fibo {(- n 1)}) (fibo {(- n 2)})}}}}] [n : number 10]) {fibo (n)}})) (mtSub))
