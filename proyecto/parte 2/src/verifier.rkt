@@ -231,17 +231,20 @@
                         [else void])])
     (cond
       [(not (list? type-params)) (car type-args)]
-      [(equal? (length type-params) (length type-args)) (if (equal? (map param-tipo type-params) type-args)
-                                                                   (if (idS? fun)
-                                                                       (param-tipo (last type-params))
-                                                                       (if (equal?
-                                                                            (typeof (funS-body fun) (get-context (funS-params fun) context))
-                                                                            (get-las-type (funS-rType fun)))
-                                                                           (get-las-type (funS-rType fun))
-                                                                           (error (~a "type-app El valor de retorno no coincide " (typeof (funS-body fun) (get-context (funS-params fun) context)) "rr" (param-tipo (last type-params))))))
-                                                                   (error (string-append "app: Type error:\nParameter's type doesn't match expected argument's type.\nGiven: " (~v type-fun)"\nExpected: (booleanT)")))]
+      [(equal? (length type-params) (length type-args))
+       (if (equal? (map param-tipo type-params) type-args)
+           (if (idS? fun)
+               (param-tipo (last type-params))
+               (if (equal?
+                    (typeof (funS-body fun) (get-context (funS-params fun) context))
+                    (get-las-type (funS-rType fun)))
+                   (get-las-type (funS-rType fun))
+                   (error "type-app El valor de retorno no coincide")))
+           (error (string-append "app: Type error:\nParameter's type doesn't match expected argument's type.\nExpected: (booleanT)")))]
       [else (error 'type-app "El número de parámetros y argumentos es distinto")])))
 
+;; Extiende en contexto
+;; get-context :: (listof Param) Type-Context --> Type-Context
 (define (get-context params context)
   (if (empty? params)
       context
@@ -274,9 +277,9 @@
                [(not (listT? (typeof (car lst) context))) (car lst)]
                [else (erroR (cdr lst) "lts" context)])]))
 
-(require racket/trace)
-(trace typeof)
-(trace type-recs)
+;(require racket/trace)
+;(trace typeof)
+;(trace type-recs)
 ;(trace type-with)
 ;(trace get-las-type)
 ;(typeof (parse '{with [(x : number 8) (y : boolean #f)] {expt x y}}) (phi))
