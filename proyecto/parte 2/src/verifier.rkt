@@ -20,9 +20,22 @@
     [condS (cnds) (type-cond cnds context)]
     [withS (lst body) (typeof body (type-with lst context))]
     [withS* (lst body) (typeof body (type-with lst context))]
-    [recS (lst body) (type-recs body lst context)]
+    [recS (lst body) (cond
+                       [(and (comp-in-out lst) (void? (type-recs lst context))) (get-las-type (bindingS-type (car lst)))]
+                       [else (error 'typeof "Type error")])]
     [funS (param type body) (type-fun param type body context)]
     [appS (fun args) (type-app fun args context)]))
+
+(define (comp-in-out lst)
+  (match lst
+    ['() #t]
+    [(cons (bindingS id type value) xs) (match type
+                                          [(funT param) (equal? (take param (- (length param) 1)) (get-aux xs))])]))
+
+(define (get-aux lst)
+  (match lst
+    ['() '()]
+    [(cons (bindingS id type val) xs) (cons type (get-aux xs))]))
 
 
 ;; Busca el tipo correspondiente de un identificador
@@ -147,13 +160,7 @@
 
 
 
-(define (type-recs body lst context)
-  (match lst
-    ['() context]
-    [(cons x xs) (type-case BindingS x
-                   [bindingS (id type value) 6])]))
 
-#|
 (define (type-recs lst context)
   (match lst
     ['() context]
@@ -164,7 +171,7 @@
                                              (type-recs xs (gamma id type (gamma id (get-las-type type) context)))])]
        [(equal? (get-las-type type) (typeof val context)) (type-recs xs (gamma id type context))]
        [else (error (string-append "typeof: Type Error\nExpected type: " (~v type)
-                                   "\nGiven type: " (~v (typeof val context))))])]))|#
+                                   "\nGiven type: " (~v (typeof val context))))])]))
 
 (define (free-var id context)
   (match context
@@ -215,8 +222,11 @@
 (define (type-app fun args context)
   (let* ([type-args (map (lambda (x) (typeof x context)) args)]
          [type-fun (typeof fun context)]
-         [type-params (funS-params fun)])
-    (cond 
+         [type-params (cond
+                        [(funS? fun) (funS-params fun)]
+                        [else void])])
+    (cond
+      [(not (list? type-params)) (car type-args)]
       [(equal? (length type-params) (length type-args)) (if (equal? (map param-tipo type-params) type-args)
                                                                    (if (idS? fun)
                                                                        (param-tipo (last type-params))
@@ -262,9 +272,10 @@
 
 ;(require racket/trace)
 ;(trace typeof)
+;(trace type-recs)
 ;(trace type-with)
 ;(trace get-las-type)
 ;(typeof (parse '{with [(x : number 8) (y : boolean #f)] {expt x y}}) (phi))
-;(typeof (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : number 5]) {fac (n)}}) (phi))
+;(typeof (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : char #\5]) {fac (n)}}) (phi))
 ;(typeof (parse '{(fun ((n : number) (m : number)) : (number number -> number) (+ n m)) (9 3 8)}) (phi))
 ;(typeof (parse '{{fun {{x : number} {y : boolean}} : (number boolean -> number) {if y x 0}} {2 #t}}) (phi))

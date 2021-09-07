@@ -123,6 +123,8 @@
      (interp-app (cdr param) (cdr arg) (aSub (first param) (interp (first arg) ds) env) ds)]
     [else (error 'interp "La cantidad de parámetros y agumentos debe ser la misma")]))
 
+;; Obtiene el símbolo sin tipo
+;; het-symbol :: Param --> symbol
 (define (get-symbol par)
   (match par
     [(param id type) id]))
@@ -132,27 +134,19 @@
 (define (cyclically-bind-and-interp lst env)
   (match lst
     ['() env]
-    [(cons (binding id value) xs) (let* ([contenedor (box 'dummy)] 
-                                         [ambiente (aRecSub id contenedor env)]
-                                         [valor (interp value ambiente)])
-                                    (begin
-                                      (set-box! contenedor valor) 
-                                      (cyclically-bind-and-interp xs ambiente)))]))
+    [(cons (binding id value) xs)
+     (let* ([contenedor (box 'dummy)] 
+            [ambiente (aRecSub id contenedor env)]
+            [valor (interp value ambiente)])
+       (begin
+         (set-box! contenedor valor) 
+         (cyclically-bind-and-interp xs ambiente)))]))
 
-#|(define (test n)
-  (let ([fact (box 'dummy)])
-    (let ([fact-fun
-           (lambda n
-             (if (zero? n)
-                 1
-                 (* n ((unbox fact) (- n 1)))))])
-      (begin
-        (set-box! fact fact-fun)
-        ((unbox fact) n)))))
 
-(test 5)|#
 ;(require racket/trace)
 ;(trace interp)
 ;(trace test)
-;(interp (desugar (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : number 5]) {fac (n)}})) (mtSub))
-;(interp (desugar (parse '{rec ([fibo : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 0 {if {= n 1} 1 {+ (fibo {(- n 1)}) (fibo {(- n 2)})}}}}] [n : number 10]) {fibo (n)}})) (mtSub))
+;(interp (desugar (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [(n : number 5) (m : number 78)]) {fac (n)}})) (mtSub))
+;(interp (desugar (parse '{rec ([fibo : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 0 {if {= n 1} 1 {+ (fibo {(- n 1)}) (fibo {(- n 2)})}}}}] [n : number ]) {fibo (n)}})) (mtSub))
+;(interp (desugar (parse '{rec ([rev : (list -> list) {fun {(l : list)} : (list -> list) {if {empty? l} {} {append {rev {{cdr l}}} {car l}}}}] [l : list (lst 1 2 3)]) {rev (l)}})) (mtSub))
+;(interp (desugar (parse '{rec ([fibo : (number number number -> number) {fun {(x : number) (y : number) (z : number)} : (number number number -> number) {if {zero? x} z {if {= x 1} z (fibo {(- x 1) z (+ y z)})}}}] (x : number 27) (y : number 0) (z : number 1)) {fibo (x y z)}})) (mtSub))

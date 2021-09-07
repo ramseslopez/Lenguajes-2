@@ -28,7 +28,7 @@
     [(boolean? sexp) (boolS sexp)]
     [(char? sexp) (charS sexp)]
     [(string? sexp) (stringS sexp)]
-    [(empty? sexp) (error 'parse "Las expresiones vacías no son válidas")]
+    ;[(empty? sexp) (error 'parse "Las expresiones vacías no son válidas")]
     [(list? sexp) (parse-aux sexp)]))
 
 ;; Parsea una lista s-expression a un ASA en SRCFWBAE-Typed
@@ -136,7 +136,7 @@
     [(equal? exp 'char) (charT)]
     [(equal? exp 'string) (stringT)]
     [(equal? exp 'list) (listT)]
-    [(list? exp) (funT (map type (no-arrows exp)))]))
+    [(list? exp) (funT (map (lambda (x) (type x)) (no-arrows exp)))]))
 
 ;; Función que verifica si una lista tiene elementos repetidos
 ;; tiene-repetidos :: (listof any) --> boolean
@@ -168,3 +168,8 @@
     [(cons x xs) (cond
                    [(equal? x '->) (no-arrows xs)]
                    [else (cons x (no-arrows xs))])]))
+
+(define (void sexp)
+  (match sexp
+    ['() (listS '())]))
+
