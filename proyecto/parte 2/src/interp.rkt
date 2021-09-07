@@ -63,7 +63,7 @@
                     [(char? b) (charV b)]
                     [(string? b) (stringV b)]
                     [(list? b) (listV (map (lambda (z) (interp (to-rcfwbae z) ds)) b))]))]
-    [(rec lst body) (interp body (cyclically-bind-and-interp lst ds))]
+    [(rec lst body) (interp body (interp-rec lst ds))]
     [(fun param body) (closure (map get-symbol param) body ds)]
     [(app fun args) (let ([fun-val (interp fun ds)])
                       (interp (closure-body fun-val)
@@ -108,7 +108,7 @@
                                                [else (error 'interp "El operador sólo acepta listas")])]
     [(equal? f car) (cond
                       [(andmap list? args) (apply f args)]
-                      [else (error 'interp "Símbolo no esperado. El segundo parámetro de car debe ser una lista.")])]
+                      [else (error 'interp "Símbolo no esperado. El parámetro de car debe ser una lista.")])]
     [(member f (list cons)) (cond
                               [(list? (cdr args)) (apply f args)]
                               [else (error 'interp "El operador sólo acepta un elemento y una lista")])]
@@ -124,14 +124,14 @@
     [else (error 'interp "La cantidad de parámetros y agumentos debe ser la misma")]))
 
 ;; Obtiene el símbolo sin tipo
-;; het-symbol :: Param --> symbol
+;; get-symbol :: Param --> symbol
 (define (get-symbol par)
   (match par
     [(param id type) id]))
 
-
-;; cyclically-bind-and-interp : symbol RCFWBAE Env --> Env
-(define (cyclically-bind-and-interp lst env)
+;; Realiza la recursión por medio de cajas
+;; interp-rec : symbol RCFWBAE Env --> Env
+(define (interp-rec lst env)
   (match lst
     ['() env]
     [(cons (binding id value) xs)
@@ -140,13 +140,4 @@
             [valor (interp value ambiente)])
        (begin
          (set-box! contenedor valor) 
-         (cyclically-bind-and-interp xs ambiente)))]))
-
-
-;(require racket/trace)
-;(trace interp)
-;(trace test)
-;(interp (desugar (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [(n : number 5) (m : number 78)]) {fac (n)}})) (mtSub))
-;(interp (desugar (parse '{rec ([fibo : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 0 {if {= n 1} 1 {+ (fibo {(- n 1)}) (fibo {(- n 2)})}}}}] [n : number ]) {fibo (n)}})) (mtSub))
-;(interp (desugar (parse '{rec ([rev : (list -> list) {fun {(l : list)} : (list -> list) {if {empty? l} {} {append {rev {cdr l}} {car l}}}}] [l : list (lst 1 2 3)]) {rev (l)}})) (mtSub))
-;(interp (desugar (parse '{rec ([fibo : (number number number -> number) {fun {(x : number) (y : number) (z : number)} : (number number number -> number) {if {zero? x} z {if {= x 1} z (fibo {(- x 1) z (+ y z)})}}}] (x : number -2) (y : number 0) (z : number 1)) {fibo (x y z)}})) (mtSub))
+         (interp-rec xs ambiente)))]))

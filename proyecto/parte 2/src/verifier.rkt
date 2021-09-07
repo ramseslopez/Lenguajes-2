@@ -240,7 +240,7 @@
                     (get-las-type (funS-rType fun)))
                    (get-las-type (funS-rType fun))
                    (error "type-app El valor de retorno no coincide")))
-           (error (string-append "app: Type error:\nParameter's type doesn't match expected argument's type.\nExpected: (booleanT)")))]
+           (error (string-append "app: Type error:\nParameter's type doesn't match argument's type.\nExpected: (booleanT)")))]
       [else (error 'type-app "El número de parámetros y argumentos es distinto")])))
 
 ;; Extiende en contexto
@@ -276,14 +276,3 @@
                [(empty? lst) empty]
                [(not (listT? (typeof (car lst) context))) (car lst)]
                [else (erroR (cdr lst) "lts" context)])]))
-
-;(require racket/trace)
-;(trace typeof)
-;(trace type-recs)
-;(trace type-with)
-;(trace get-las-type)
-;(typeof (parse '{with [(x : number 8) (y : boolean #f)] {expt x y}}) (phi))
-;(typeof (parse '{rec ([fac : (number -> number) {fun {(n : number)} : (number -> number) {if {zero? n} 1 {* n {fac ({- n 1})}}}}] [n : char #\5]) {fac (n)}}) (phi))
-;(typeof (parse '{(fun ((n : number) (m : number)) : (number number -> number) (+ n m)) (9 3 8)}) (phi))
-;(typeof (parse '{{fun {{x : number} {y : boolean}} : (number boolean -> number) {if y x 0}} {2 #t}}) (phi))
-;(typeof (parse '{rec ([fibo : (number number number -> number) {fun {(x : number) (y : number) (z : number)} : (number number number -> number) {if {zero? x} z {if {= x 1} z (fibo {(- x 1) #t (+ y z)})}}}] (x : number 27) (y : number 0) (z : number 1)) {fibo (x y z)}}) (phi))

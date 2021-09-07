@@ -23,19 +23,20 @@
 ;; parse :: s-expression --> SRCFWBAE-Typed
 (define (parse sexp)
   (cond
+    [(equal? sexp 'empty) (listS '())]
     [(symbol? sexp) (idS sexp)]
     [(number? sexp) (numS sexp)]
     [(boolean? sexp) (boolS sexp)]
     [(char? sexp) (charS sexp)]
     [(string? sexp) (stringS sexp)]
-    ;[(empty? sexp) (error 'parse "Las expresiones vacías no son válidas")]
     [(list? sexp) (parse-aux sexp)]))
 
 ;; Parsea una lista s-expression a un ASA en SRCFWBAE-Typed
 ;; parse-aux :: s-expression --> SRCFWBAE-Typed
 (define (parse-aux sexp)
   (match sexp
-    ['() (void sexp)]
+    ['() (listS '())]
+    ['(empty) (listS '())]
     [(cons x xs) (case (car sexp)
                    [(sub1 add1 not length car cdr string-length)
                     (if (equal? (length sexp) 2)
@@ -126,7 +127,6 @@
                    (type (third b))
                    (parse (fourth b)))) bindings))
 
-
 ;; Devuelve el tipo
 ;; type :: s-expression --> Type
 (define (type exp)
@@ -168,8 +168,3 @@
     [(cons x xs) (cond
                    [(equal? x '->) (no-arrows xs)]
                    [else (cons x (no-arrows xs))])]))
-
-(define (void sexp)
-  (match sexp
-    ['() (listS '())]))
-

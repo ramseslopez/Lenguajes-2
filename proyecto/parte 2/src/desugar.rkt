@@ -78,4 +78,3 @@
   (match bindings
     ['() '()]
     [(cons (bindingS a t b) xs) (cons (binding a (desugar b)) (rec-aux xs))]))
-
